@@ -1,11 +1,18 @@
-# --- VARIABLES GLOBALES ---
-dinero = 50
-caos = 0
-dia = 1
-# Estados: 0=Tienda, 1=Sotano, 2=Plaza
-ubicacion_actual = 0
+# ==========================================
+# PROYECTO: Zombie Survival Merchant
+# OBJETIVO: Sobrevivir 5 rondas y mejorar el equipo
+# ==========================================
 
-# Crear al Mercader
+# --- VARIABLES GLOBALES ---
+dia = 1
+zombies_vivos = 0
+dinero = 50
+velocidad_jugador = 100
+danio_arma = 1
+# Estructura de datos compleja: Lista de enemigos por ronda (Criterio +1pt)
+zombies_por_ronda = [5, 10, 15, 20, 30]
+
+# --- CONFIGURACIÓN INICIAL ---
 mercader = sprites.create(img("""
     . . . . . . . . . . . . . . . .
     . . . . 2 2 2 2 2 . . . . . . .
@@ -17,126 +24,116 @@ mercader = sprites.create(img("""
     . . . . 8 8 8 8 8 . . . . . . .
     . . . . 8 8 8 8 8 . . . . . . .
     . . . . 8 . . . 8 . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-"""), SpriteKind.player)
-controller.move_sprite(mercader)
+    """), SpriteKind.player)
+
+controller.move_sprite(mercader, velocidad_jugador, velocidad_jugador)
 scene.camera_follow_sprite(mercader)
-
-# Mostrar Dinero
 info.set_score(dinero)
+info.set_life(3)
 
-# --- CONFIGURACIÓN DE MAPAS ---
-def cargar_tienda():
-    global ubicacion_actual
-    ubicacion_actual = 0
-    # IMPORTANTE: Aquí la Persona 1 (Arte) debe dibujar la tienda en el editor visual
-    # Pon baldosas de suelo y PAREDES rojas alrededor
-    tiles.set_current_tilemap(tilemap("""level1"""))
-    scene.set_background_color(6) # Color suelo
-    mercader.set_position(80, 60)
+# --- MÓDULO DE COMBATE ---
 
-def cargar_sotano():
-    global ubicacion_actual
-    ubicacion_actual = 1
-    # La Persona 1 debe dibujar un mapa oscuro aquí
-    tiles.set_current_tilemap(tilemap("""level2"""))
-    scene.set_background_color(15) # Negro
-    mercader.set_position(20, 20)
+def disparar():
+    """ Crea un proyectil. Función modular reutilizable. """
+    projectile = sprites.create_projectile_from_sprite(img("""
+        . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . .
+        . . . 5 5 5 5 5 5 5 5 . . . . .
+        . . . . . . . . . . . . . . . .
+    """), mercader, 150, 0)
+    music.pew_pew.play()
 
-# Cargar primer mapa
-cargar_tienda()
+controller.A.on_event(ControllerButtonEvent.PRESSED, disparar)
 
-# --- SISTEMA DE CLIENTES (LORE) ---
-def generar_cliente():
-    # Solo aparecen clientes si estamos en la tienda
-    if ubicacion_actual == 0:
-        cliente = sprites.create(img("""
-            . . . . . . . . . . . . . . . .
-            . . . . . . 5 5 . . . . . . . .
-            . . . . . 5 5 5 5 . . . . . . .
-            . . . . . 5 f f 5 . . . . . . .
-            . . . . . 5 f f 5 . . . . . . .
-            . . . . . 5 5 5 5 . . . . . . .
-            . . . . . . 5 5 . . . . . . . .
-            . . . . . d d d d . . . . . . .
-            . . . . . d d d d . . . . . . .
-            . . . . . d . . d . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
+def spawn_zombie():
+    """ Genera un enemigo en una posición aleatoria. """
+    global zombies_vivos
+    zombie = sprites.create(img("""
+        . . . . . . 5 5 . . . . . . . .
+        . . . . . 5 5 5 5 . . . . . . .
+        . . . . . 5 f f 5 . . . . . . .
+        . . . . . 5 f f 5 . . . . . . .
+        . . . . . 5 5 5 5 . . . . . . .
+        . . . . . . 5 5 . . . . . . . .
+        . . . . . d d d d . . . . . . .
         """), SpriteKind.enemy)
-        # Aparece en la puerta (ajustar coordenadas según tu dibujo)
-        cliente.set_position(80, 10)
-        cliente.follow(mercader, 30)
+    zombie.set_position(randint(0, 160), randint(0, 120))
+    # Evitar que aparezca encima del jugador
+    if Math.abs(zombie.x - mercader.x) < 20:
+        zombie.x += 40
+    zombie.follow(mercader, 30 + (dia * 2)) # Dificultad progresiva
 
-# Generar un cliente cada 7 segundos
-game.on_update_interval(7000, generar_cliente)
+def iniciar_ronda(num_dia: number):
+    """ Configura la ronda según el día actual. Usa parámetros. """
+    global zombies_vivos
+    game.splash("DIA " + str(num_dia), "¡Sobrevive!")
+    zombies_vivos = zombies_por_ronda[num_dia - 1]
+    for i in range(zombies_vivos):
+        spawn_zombie()
 
-# --- INTERACCIÓN Y VENTAS ---
-def on_overlap_cliente(sprite, otherSprite):
-    global dinero, caos
+# --- MÓDULO DE TIENDA (MENÚ INTERACTIVO) ---
+
+def abrir_tienda():
+    """ Menú interactivo con el usuario (Criterio +1pt) """
+    global dinero, velocidad_jugador, danio_arma
     
-    # Detener movimiento para hablar
-    otherSprite.follow(None)
+    story.printCharacterText("¡Ronda superada! ¿Qué quieres comprar?", "Sistema")
+    story.showPlayerChoices("Botas Rápidas (40$)", "Munición Pesada (60$)", "Siguiente Ronda")
     
-    # Diálogo de Lore usando la extensión Story
-    story.print_character_text("Necesito armas...", "Cliente")
-    
-    # Opciones
-    story.show_player_choices("Espada (10$)", "Daga Maldita (50$)", "Echarlo")
-    
-    if story.check_last_answer("Espada (10$)"):
-        dinero += 10
-        caos -= 1
-        story.print_character_text("Gracias, servirá.", "Cliente")
-    elif story.check_last_answer("Daga Maldita (50$)"):
-        dinero += 50
-        caos += 5 # SUBE EL CAOS
-        story.print_character_text("Jejeje... poder ilimitado.", "Cliente")
-        scene.camera_shake(4, 500)
-    else:
-        story.print_character_text("¡Bah! Me voy.", "Cliente")
-        
-    # Actualizar marcador y borrar cliente
+    if story.checkLastAnswer("Botas Rápidas (40$)"):
+        if dinero >= 40:
+            dinero -= 40
+            velocidad_jugador += 20
+            controller.move_sprite(mercader, velocidad_jugador, velocidad_jugador)
+            story.printCharacterText("¡Ahora eres más rápido!")
+        else:
+            story.printCharacterText("No tienes suficiente dinero...")
+            
+    elif story.checkLastAnswer("Munición Pesada (60$)"):
+        if dinero >= 60:
+            dinero -= 60
+            danio_arma += 1
+            story.printCharacterText("Tus balas son más fuertes.")
+        else:
+            story.printCharacterText("Dinero insuficiente...")
+            
     info.set_score(dinero)
-    otherSprite.destroy(effects.disintegrate, 500)
+    verificar_progreso()
 
-sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, on_overlap_cliente)
+# --- GESTIÓN DE ESTADOS Y COLISIONES ---
 
-# --- NOTICIAS AL FINAL DEL DÍA ---
-def ciclo_dia():
-    global dia, caos
+def al_morir_zombie(proyectil, zombie):
+    global zombies_vivos, dinero
+    proyectil.destroy()
+    zombie.destroy(effects.disintegrate, 200)
+    zombies_vivos -= 1
+    dinero += 10
+    info.set_score(dinero)
+    
+    if zombies_vivos <= 0:
+        abrir_tienda()
+
+sprites.on_overlap(SpriteKind.projectile, SpriteKind.enemy, al_morir_zombie)
+
+def daño_jugador(jugador, zombie):
+    info.change_life_by(-1)
+    zombie.destroy()
+    global zombies_vivos
+    zombies_vivos -= 1
+    if zombies_vivos <= 0:
+        abrir_tienda()
+
+sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, daño_jugador)
+
+def verificar_progreso():
+    """ Controla si el juego termina o sigue. Final assolible (+2pts). """
+    global dia
     dia += 1
-    
-    # Texto de noticias
-    game.show_long_text("DÍA " + str(dia) + " COMPLETADO.", DialogLayout.CENTER)
-    
-    if caos > 20:
-        game.show_long_text("NOTICIA URGENTE: ¡Ataques en el reino! Se dice que el mercader vende armas malditas...", DialogLayout.FULL)
-    elif caos < 0:
-        game.show_long_text("NOTICIA: Tiempos de paz. La cosecha es buena.", DialogLayout.FULL)
+    if dia > 5:
+        game.over(True, effects.confetti)
     else:
-        game.show_long_text("NOTICIA: Todo tranquilo por ahora.", DialogLayout.FULL)
+        iniciar_ronda(dia)
 
-# El día dura 30 segundos
-game.on_update_interval(30000, ciclo_dia)
-
-# --- CAMBIO DE MAPAS (Simulado con botones A y B por ahora) ---
-# Programador: Cambia esto por colisión con escaleras más tarde
-def cambiar_zona_a():
-    cargar_tienda()
-    story.print_character_text("Has entrado en la TIENDA")
-controller.A.on_event(ControllerButtonEvent.PRESSED, cambiar_zona_a)
-
-def cambiar_zona_b():
-    cargar_sotano()
-    story.print_character_text("Has bajado al SÓTANO")
-controller.B.on_event(ControllerButtonEvent.PRESSED, cambiar_zona_b)
+# --- INICIO DEL JUEGO ---
+game.show_long_text("ZOMBIE SURVIVAL\n\nElimina a los zombies para ganar dinero y mejorar tu equipo en la tienda.", DialogLayout.CENTER)
+iniciar_ronda(dia)

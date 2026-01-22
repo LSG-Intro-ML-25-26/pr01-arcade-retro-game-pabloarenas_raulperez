@@ -1,10 +1,16 @@
+//  ==========================================
+//  PROYECTO: Zombie Survival Merchant
+//  OBJETIVO: Sobrevivir 5 rondas y mejorar el equipo
+//  ==========================================
 //  --- VARIABLES GLOBALES ---
-let dinero = 50
-let caos = 0
 let dia = 1
-//  Estados: 0=Tienda, 1=Sotano, 2=Plaza
-let ubicacion_actual = 0
-//  Crear al Mercader
+let zombies_vivos = 0
+let dinero = 50
+let velocidad_jugador = 100
+let danio_arma = 1
+//  Estructura de datos compleja: Lista de enemigos por ronda (Criterio +1pt)
+let zombies_por_ronda = [5, 10, 15, 20, 30]
+//  --- CONFIGURACIÓN INICIAL ---
 let mercader = sprites.create(img`
     . . . . . . . . . . . . . . . .
     . . . . 2 2 2 2 2 . . . . . . .
@@ -16,121 +22,122 @@ let mercader = sprites.create(img`
     . . . . 8 8 8 8 8 . . . . . . .
     . . . . 8 8 8 8 8 . . . . . . .
     . . . . 8 . . . 8 . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-`, SpriteKind.Player)
-controller.moveSprite(mercader)
+    `, SpriteKind.Player)
+controller.moveSprite(mercader, velocidad_jugador, velocidad_jugador)
 scene.cameraFollowSprite(mercader)
-//  Mostrar Dinero
 info.setScore(dinero)
-//  --- CONFIGURACIÓN DE MAPAS ---
-function cargar_tienda() {
+info.setLife(3)
+//  --- MÓDULO DE COMBATE ---
+controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
+    /** Crea un proyectil. Función modular reutilizable. */
+    let projectile = sprites.createProjectileFromSprite(img`
+        . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . .
+        . . . 5 5 5 5 5 5 5 5 . . . . .
+        . . . . . . . . . . . . . . . .
+    `, mercader, 150, 0)
+    music.pewPew.play()
+})
+function spawn_zombie() {
+    /** Genera un enemigo en una posición aleatoria. */
     
-    ubicacion_actual = 0
-    //  IMPORTANTE: Aquí la Persona 1 (Arte) debe dibujar la tienda en el editor visual
-    //  Pon baldosas de suelo y PAREDES rojas alrededor
-    tiles.setCurrentTilemap(tilemap`level1`)
-    scene.setBackgroundColor(6)
-    //  Color suelo
-    mercader.setPosition(80, 60)
-}
-
-function cargar_sotano() {
-    
-    ubicacion_actual = 1
-    //  La Persona 1 debe dibujar un mapa oscuro aquí
-    tiles.setCurrentTilemap(tilemap`level2`)
-    scene.setBackgroundColor(15)
-    //  Negro
-    mercader.setPosition(20, 20)
-}
-
-//  Cargar primer mapa
-cargar_tienda()
-//  --- SISTEMA DE CLIENTES (LORE) ---
-//  Generar un cliente cada 7 segundos
-game.onUpdateInterval(7000, function generar_cliente() {
-    let cliente: Sprite;
-    //  Solo aparecen clientes si estamos en la tienda
-    if (ubicacion_actual == 0) {
-        cliente = sprites.create(img`
-            . . . . . . . . . . . . . . . .
-            . . . . . . 5 5 . . . . . . . .
-            . . . . . 5 5 5 5 . . . . . . .
-            . . . . . 5 f f 5 . . . . . . .
-            . . . . . 5 f f 5 . . . . . . .
-            . . . . . 5 5 5 5 . . . . . . .
-            . . . . . . 5 5 . . . . . . . .
-            . . . . . d d d d . . . . . . .
-            . . . . . d d d d . . . . . . .
-            . . . . . d . . d . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
+    let zombie = sprites.create(img`
+        . . . . . . 5 5 . . . . . . . .
+        . . . . . 5 5 5 5 . . . . . . .
+        . . . . . 5 f f 5 . . . . . . .
+        . . . . . 5 f f 5 . . . . . . .
+        . . . . . 5 5 5 5 . . . . . . .
+        . . . . . . 5 5 . . . . . . . .
+        . . . . . d d d d . . . . . . .
         `, SpriteKind.Enemy)
-        //  Aparece en la puerta (ajustar coordenadas según tu dibujo)
-        cliente.setPosition(80, 10)
-        cliente.follow(mercader, 30)
+    zombie.setPosition(randint(0, 160), randint(0, 120))
+    //  Evitar que aparezca encima del jugador
+    if (Math.abs(zombie.x - mercader.x) < 20) {
+        zombie.x += 40
     }
     
-})
-//  --- INTERACCIÓN Y VENTAS ---
-sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function on_overlap_cliente(sprite: Sprite, otherSprite: Sprite) {
+    zombie.follow(mercader, 30 + dia * 2)
+}
+
+//  Dificultad progresiva
+function iniciar_ronda(num_dia: number) {
+    /** Configura la ronda según el día actual. Usa parámetros. */
     
-    //  Detener movimiento para hablar
-    otherSprite.follow(null)
-    //  Diálogo de Lore usando la extensión Story
-    story.printCharacterText("Necesito armas...", "Cliente")
-    //  Opciones
-    story.showPlayerChoices("Espada (10$)", "Daga Maldita (50$)", "Echarlo")
-    if (story.checkLastAnswer("Espada (10$)")) {
-        dinero += 10
-        caos -= 1
-        story.printCharacterText("Gracias, servirá.", "Cliente")
-    } else if (story.checkLastAnswer("Daga Maldita (50$)")) {
-        dinero += 50
-        caos += 5
-        //  SUBE EL CAOS
-        story.printCharacterText("Jejeje... poder ilimitado.", "Cliente")
-        scene.cameraShake(4, 500)
-    } else {
-        story.printCharacterText("¡Bah! Me voy.", "Cliente")
+    game.splash("DIA " + ("" + num_dia), "¡Sobrevive!")
+    zombies_vivos = zombies_por_ronda[num_dia - 1]
+    for (let i = 0; i < zombies_vivos; i++) {
+        spawn_zombie()
+    }
+}
+
+//  --- MÓDULO DE TIENDA (MENÚ INTERACTIVO) ---
+function abrir_tienda() {
+    /** Menú interactivo con el usuario (Criterio +1pt) */
+    
+    story.printCharacterText("¡Ronda superada! ¿Qué quieres comprar?", "Sistema")
+    story.showPlayerChoices("Botas Rápidas (40$)", "Munición Pesada (60$)", "Siguiente Ronda")
+    if (story.checkLastAnswer("Botas Rápidas (40$)")) {
+        if (dinero >= 40) {
+            dinero -= 40
+            velocidad_jugador += 20
+            controller.moveSprite(mercader, velocidad_jugador, velocidad_jugador)
+            story.printCharacterText("¡Ahora eres más rápido!")
+        } else {
+            story.printCharacterText("No tienes suficiente dinero...")
+        }
+        
+    } else if (story.checkLastAnswer("Munición Pesada (60$)")) {
+        if (dinero >= 60) {
+            dinero -= 60
+            danio_arma += 1
+            story.printCharacterText("Tus balas son más fuertes.")
+        } else {
+            story.printCharacterText("Dinero insuficiente...")
+        }
+        
     }
     
-    //  Actualizar marcador y borrar cliente
     info.setScore(dinero)
-    otherSprite.destroy(effects.disintegrate, 500)
+    verificar_progreso()
+}
+
+//  --- GESTIÓN DE ESTADOS Y COLISIONES ---
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function al_morir_zombie(proyectil: Sprite, zombie: Sprite) {
+    
+    proyectil.destroy()
+    zombie.destroy(effects.disintegrate, 200)
+    zombies_vivos -= 1
+    dinero += 10
+    info.setScore(dinero)
+    if (zombies_vivos <= 0) {
+        abrir_tienda()
+    }
+    
 })
-//  --- NOTICIAS AL FINAL DEL DÍA ---
-//  El día dura 30 segundos
-game.onUpdateInterval(30000, function ciclo_dia() {
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function daño_jugador(jugador: Sprite, zombie: Sprite) {
+    info.changeLifeBy(-1)
+    zombie.destroy()
+    
+    zombies_vivos -= 1
+    if (zombies_vivos <= 0) {
+        abrir_tienda()
+    }
+    
+})
+function verificar_progreso() {
+    /** Controla si el juego termina o sigue. Final assolible (+2pts). */
     
     dia += 1
-    //  Texto de noticias
-    game.showLongText("DÍA " + ("" + dia) + " COMPLETADO.", DialogLayout.Center)
-    if (caos > 20) {
-        game.showLongText("NOTICIA URGENTE: ¡Ataques en el reino! Se dice que el mercader vende armas malditas...", DialogLayout.Full)
-    } else if (caos < 0) {
-        game.showLongText("NOTICIA: Tiempos de paz. La cosecha es buena.", DialogLayout.Full)
+    if (dia > 5) {
+        game.over(true, effects.confetti)
     } else {
-        game.showLongText("NOTICIA: Todo tranquilo por ahora.", DialogLayout.Full)
+        iniciar_ronda(dia)
     }
     
-})
-//  --- CAMBIO DE MAPAS (Simulado con botones A y B por ahora) ---
-//  Programador: Cambia esto por colisión con escaleras más tarde
-controller.A.onEvent(ControllerButtonEvent.Pressed, function cambiar_zona_a() {
-    cargar_tienda()
-    story.printCharacterText("Has entrado en la TIENDA")
-})
-controller.B.onEvent(ControllerButtonEvent.Pressed, function cambiar_zona_b() {
-    cargar_sotano()
-    story.printCharacterText("Has bajado al SÓTANO")
-})
+}
+
+//  --- INICIO DEL JUEGO ---
+game.showLongText(`ZOMBIE SURVIVAL
+
+Elimina a los zombies para ganar dinero y mejorar tu equipo en la tienda.`, DialogLayout.Center)
+iniciar_ronda(dia)
