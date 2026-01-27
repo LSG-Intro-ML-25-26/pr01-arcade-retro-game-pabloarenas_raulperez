@@ -1,136 +1,139 @@
-//  --- VARIABLES GLOBALES ---
-let dinero = 50
-let caos = 0
-let dia = 1
-//  Estados: 0=Tienda, 1=Sotano, 2=Plaza
-let ubicacion_actual = 0
-//  Crear al Mercader
-let mercader = sprites.create(img`
+//  ==========================================
+//  PROYECTO: Zombie Survival Merchant
+//  ==========================================
+//  --- VARIABLES ---
+let ronda = 1
+let vivos = 0
+let oro = 50
+let velocidad = 100
+let dificultad = [5, 10, 15, 20, 30]
+//  --- SPRITE ---
+let protagonista = sprites.create(img`
     . . . . . . . . . . . . . . . .
     . . . . 2 2 2 2 2 . . . . . . .
     . . . 2 2 2 2 2 2 2 . . . . . .
-    . . . 2 2 f f f 2 2 . . . . . .
-    . . . 2 f f 1 f f 2 . . . . . .
+    . . . 2 f f f f f 2 . . . . . .
+    . . . 2 f 1 f 1 f 2 . . . . . .
     . . . . f 1 1 1 f . . . . . . .
     . . . . f 1 f 1 f . . . . . . .
     . . . . 8 8 8 8 8 . . . . . . .
     . . . . 8 8 8 8 8 . . . . . . .
     . . . . 8 . . . 8 . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
 `, SpriteKind.Player)
-controller.moveSprite(mercader)
-scene.cameraFollowSprite(mercader)
-//  Mostrar Dinero
-info.setScore(dinero)
-//  --- CONFIGURACIÓN DE MAPAS ---
-function cargar_tienda() {
+protagonista.setFlag(SpriteFlag.Invisible, true)
+//  --- SISTEMA DE TEXTO (Splash para evitar bugs visuales) ---
+function iniciar_historia() {
+    /** 
+    Usa game.splash para asegurar fondo negro y letras limpias.
+    Esto elimina el bug de letras amontonadas.
     
-    ubicacion_actual = 0
-    //  IMPORTANTE: Aquí la Persona 1 (Arte) debe dibujar la tienda en el editor visual
-    //  Pon baldosas de suelo y PAREDES rojas alrededor
-    tiles.setCurrentTilemap(tilemap`level1`)
-    scene.setBackgroundColor(6)
-    //  Color suelo
-    mercader.setPosition(80, 60)
-}
-
-function cargar_sotano() {
-    
-    ubicacion_actual = 1
-    //  La Persona 1 debe dibujar un mapa oscuro aquí
-    tiles.setCurrentTilemap(tilemap`level2`)
+ */
+    //  Limpiamos marcos para que no queden restos
+    game.setDialogFrame(null)
     scene.setBackgroundColor(15)
-    //  Negro
-    mercader.setPosition(20, 20)
+    pause(200)
+    //  game.splash es mucho más estable que show_long_text para estos errores
+    game.splash("ZOMBIE SURVIVAL", "MERCHANT")
+    game.splash("HISTORIA:", `Eres el ultimo mercader.
+Protege tu stock.`)
+    //  Separamos la misión para que no se pisen las letras
+    game.splash("MISION: Mata zombies,", "gana oro y mejora.")
+    game.splash("OBJETIVO FINAL:", "SOBREVIVE 5 DIAS")
+    //  Iniciamos el juego
+    scene.setBackgroundColor(13)
+    protagonista.setFlag(SpriteFlag.Invisible, false)
 }
 
-//  Cargar primer mapa
-cargar_tienda()
-//  --- SISTEMA DE CLIENTES (LORE) ---
-//  Generar un cliente cada 7 segundos
-game.onUpdateInterval(7000, function generar_cliente() {
-    let cliente: Sprite;
-    //  Solo aparecen clientes si estamos en la tienda
-    if (ubicacion_actual == 0) {
-        cliente = sprites.create(img`
-            . . . . . . . . . . . . . . . .
-            . . . . . . 5 5 . . . . . . . .
-            . . . . . 5 5 5 5 . . . . . . .
-            . . . . . 5 f f 5 . . . . . . .
-            . . . . . 5 f f 5 . . . . . . .
-            . . . . . 5 5 5 5 . . . . . . .
-            . . . . . . 5 5 . . . . . . . .
-            . . . . . d d d d . . . . . . .
-            . . . . . d d d d . . . . . . .
-            . . . . . d . . d . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-        `, SpriteKind.Enemy)
-        //  Aparece en la puerta (ajustar coordenadas según tu dibujo)
-        cliente.setPosition(80, 10)
-        cliente.follow(mercader, 30)
+//  --- ACCIÓN ---
+controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
+    let p: Sprite;
+    if (!(protagonista.flags & SpriteFlag.Invisible)) {
+        p = sprites.createProjectileFromSprite(img`
+            . . . . . . . .
+            . . 5 5 5 5 . .
+            . . . . . . . .
+        `, protagonista, 150, 0)
+        music.pewPew.play()
     }
     
 })
-//  --- INTERACCIÓN Y VENTAS ---
-sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function on_overlap_cliente(sprite: Sprite, otherSprite: Sprite) {
+function spawn() {
     
-    //  Detener movimiento para hablar
-    otherSprite.follow(null)
-    //  Diálogo de Lore usando la extensión Story
-    story.printCharacterText("Necesito armas...", "Cliente")
-    //  Opciones
-    story.showPlayerChoices("Espada (10$)", "Daga Maldita (50$)", "Echarlo")
-    if (story.checkLastAnswer("Espada (10$)")) {
-        dinero += 10
-        caos -= 1
-        story.printCharacterText("Gracias, servirá.", "Cliente")
-    } else if (story.checkLastAnswer("Daga Maldita (50$)")) {
-        dinero += 50
-        caos += 5
-        //  SUBE EL CAOS
-        story.printCharacterText("Jejeje... poder ilimitado.", "Cliente")
-        scene.cameraShake(4, 500)
+    let z = sprites.create(img`
+        . . . . 5 5 . .
+        . . . 5 f f 5 .
+        . . . d d d d .
+    `, SpriteKind.Enemy)
+    z.setPosition(randint(0, 160), randint(0, 120))
+    if (Math.abs(z.x - protagonista.x) < 40) {
+        z.x += 60
+    }
+    
+    z.follow(protagonista, 30 + ronda * 3)
+}
+
+function nueva_ronda(n: number) {
+    
+    game.splash("DIA " + ("" + n))
+    vivos = dificultad[n - 1]
+    for (let i = 0; i < vivos; i++) {
+        spawn()
+    }
+}
+
+//  --- TIENDA Y AVANCE ---
+function tienda() {
+    
+    scene.setBackgroundColor(15)
+    //  Story choices es seguro porque usa su propia interfaz
+    story.showPlayerChoices("Botas (+Vel)", "Continuar")
+    if (story.checkLastAnswer("Botas (+Vel)") && oro >= 40) {
+        oro -= 40
+        velocidad += 20
+        controller.moveSprite(protagonista, velocidad, velocidad)
+    }
+    
+    info.setScore(oro)
+    scene.setBackgroundColor(13)
+    proximo_paso()
+}
+
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function muerte_enemigo(b: Sprite, e: Sprite) {
+    
+    b.destroy()
+    e.destroy(effects.disintegrate, 200)
+    vivos -= 1
+    oro += 10
+    info.setScore(oro)
+    if (vivos <= 0) {
+        tienda()
+    }
+    
+})
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function choque(p: Sprite, e: Sprite) {
+    info.changeLifeBy(-1)
+    e.destroy()
+    
+    vivos -= 1
+    if (vivos <= 0) {
+        tienda()
+    }
+    
+})
+function proximo_paso() {
+    
+    ronda += 1
+    if (ronda > 5) {
+        game.over(true)
     } else {
-        story.printCharacterText("¡Bah! Me voy.", "Cliente")
+        nueva_ronda(ronda)
     }
     
-    //  Actualizar marcador y borrar cliente
-    info.setScore(dinero)
-    otherSprite.destroy(effects.disintegrate, 500)
-})
-//  --- NOTICIAS AL FINAL DEL DÍA ---
-//  El día dura 30 segundos
-game.onUpdateInterval(30000, function ciclo_dia() {
-    
-    dia += 1
-    //  Texto de noticias
-    game.showLongText("DÍA " + ("" + dia) + " COMPLETADO.", DialogLayout.Center)
-    if (caos > 20) {
-        game.showLongText("NOTICIA URGENTE: ¡Ataques en el reino! Se dice que el mercader vende armas malditas...", DialogLayout.Full)
-    } else if (caos < 0) {
-        game.showLongText("NOTICIA: Tiempos de paz. La cosecha es buena.", DialogLayout.Full)
-    } else {
-        game.showLongText("NOTICIA: Todo tranquilo por ahora.", DialogLayout.Full)
-    }
-    
-})
-//  --- CAMBIO DE MAPAS (Simulado con botones A y B por ahora) ---
-//  Programador: Cambia esto por colisión con escaleras más tarde
-controller.A.onEvent(ControllerButtonEvent.Pressed, function cambiar_zona_a() {
-    cargar_tienda()
-    story.printCharacterText("Has entrado en la TIENDA")
-})
-controller.B.onEvent(ControllerButtonEvent.Pressed, function cambiar_zona_b() {
-    cargar_sotano()
-    story.printCharacterText("Has bajado al SÓTANO")
-})
+}
+
+//  --- INICIO ---
+controller.moveSprite(protagonista, velocidad, velocidad)
+info.setScore(oro)
+info.setLife(3)
+iniciar_historia()
+nueva_ronda(ronda)
