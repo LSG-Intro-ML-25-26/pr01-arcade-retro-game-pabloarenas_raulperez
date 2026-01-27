@@ -6,7 +6,7 @@ namespace myTiles {
     helpers._registerFactory("tilemap", function(name: string) {
         switch(helpers.stringTrim(name)) {
             case "mapa":
-            case "mapa1":return tiles.createTilemap(hex`100010000a13131313131313131313131313130f0b0d0d0d0d0d0d0d0d0d0d0d0d0d0d120b0d0d0d0d0d0d0d0d0d0d0d0d0d0d120b0d0c0c0c0c0c0c0c0c0c0c0c0d0d120b0d0c0d0c0d0c0c0d0d0d0d0c0c0d120b0d0d0d0d0d0d0d0d0d0d0d0d0c0d120b0d0d0c0c0d060808070d0d0d0c0d120b0c0c0c0c0d020101030d0d0c0c0d120b0c0c0c0c0d020101030d0d0c0d0d120b0c0c0c0c0d050909040d0d0c0d0d120b0c0c0c0c0d0d0d0d0d0d0d0c0d0d120b0c0c0c0d0c0d0d0c0c0c0c0c0d0d120b0c0c0c0d0d0d0c0c0d0c0c0d0d0d120b0c0c0d0d0d0d0d0d0d0d0d0d0d0d120b0d0d0d0d0d0d0d0d0d0d0d0d0d0d120e111111111111111111111111111110`, img`
+            case "mapa1":return tiles.createTilemap(hex`10001000010a0a0a0a0a0a0a0a0a0a0a0a0a0a06020404040404040404040404040404090204040404040404040404040404040902040303030303030303030303040409020403040304030304040404030304090204040404040404040404040403040902040403030404040404040404030409020303030304030304040404030304090203030303040403030304040304040902030303030404030303040403040409020303030304040404040404030404090203030304030404030303030304040902030303040404030304030304040409020303040404040404040404040404090204040404040404040404040404040905080808080808080808080808080807`, img`
 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 
 2 . . . . . . . . . . . . . . 2 
 2 . . . . . . . . . . . . . . 2 
@@ -23,7 +23,7 @@ namespace myTiles {
 2 . . . . . . . . . . . . . . 2 
 2 . . . . . . . . . . . . . . 2 
 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 
-`, [myTiles.transparency16,sprites.castle.tilePath5,sprites.castle.tilePath4,sprites.castle.tilePath6,sprites.castle.tilePath9,sprites.castle.tilePath7,sprites.castle.tilePath1,sprites.castle.tilePath3,sprites.castle.tilePath2,sprites.castle.tilePath8,sprites.dungeon.purpleOuterNorthWest,sprites.dungeon.purpleOuterWest0,sprites.castle.tileDarkGrass2,sprites.castle.tileDarkGrass3,sprites.dungeon.purpleOuterSouthEast,sprites.dungeon.purpleOuterNorthEast,sprites.dungeon.purpleOuterSouthWest,sprites.dungeon.purpleOuterSouth1,sprites.dungeon.purpleOuterEast0,sprites.dungeon.purpleOuterNorth1], TileScale.Sixteen);
+`, [myTiles.transparency16,sprites.dungeon.purpleOuterNorthWest,sprites.dungeon.purpleOuterWest0,sprites.castle.tileDarkGrass2,sprites.castle.tileDarkGrass3,sprites.dungeon.purpleOuterSouthEast,sprites.dungeon.purpleOuterNorthEast,sprites.dungeon.purpleOuterSouthWest,sprites.dungeon.purpleOuterSouth1,sprites.dungeon.purpleOuterEast0,sprites.dungeon.purpleOuterNorth1], TileScale.Sixteen);
         }
         return null;
     })
