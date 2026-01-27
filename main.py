@@ -9,7 +9,7 @@ oro = 50
 velocidad = 100
 dificultad = [5, 10, 15, 20, 30]
 
-# --- SPRITE ---
+# --- SPRITE DEL JUGADOR ---
 protagonista = sprites.create(img("""
     . . . . . . . . . . . . . . . .
     . . . . 2 2 2 2 2 . . . . . . .
@@ -24,30 +24,29 @@ protagonista = sprites.create(img("""
 """), SpriteKind.player)
 protagonista.set_flag(SpriteFlag.INVISIBLE, True)
 
-# --- SISTEMA DE TEXTO (Splash para evitar bugs visuales) ---
+# --- MAPA (Usando tu asset 'mapa') ---
+
+def cargar_mapa():
+    # Carga tu tilemap llamado "mapa"
+    tiles.set_current_tilemap(assets.tilemap("""mapa"""))
+    
+    # Hacemos que la cámara siga al jugador
+    scene.camera_follow_sprite(protagonista)
+
+# --- SISTEMA DE TEXTO ---
 
 def iniciar_historia():
-    """
-    Usa game.splash para asegurar fondo negro y letras limpias.
-    Esto elimina el bug de letras amontonadas.
-    """
-    # Limpiamos marcos para que no queden restos
     game.set_dialog_frame(None)
     scene.set_background_color(15)
     pause(200)
 
-    # game.splash es mucho más estable que show_long_text para estos errores
     game.splash("ZOMBIE SURVIVAL", "MERCHANT")
-    
     game.splash("HISTORIA:", "Eres el ultimo mercader.\nProtege tu stock.")
-    
-    # Separamos la misión para que no se pisen las letras
     game.splash("MISION: Mata zombies,", "gana oro y mejora.")
-    
     game.splash("OBJETIVO FINAL:", "SOBREVIVE 5 DIAS")
     
-    # Iniciamos el juego
-    scene.set_background_color(13)
+    # Cargamos el mapa y mostramos al jugador
+    cargar_mapa()
     protagonista.set_flag(SpriteFlag.INVISIBLE, False)
 
 # --- ACCIÓN ---
@@ -70,8 +69,19 @@ def spawn():
         . . . 5 f f 5 .
         . . . d d d d .
     """), SpriteKind.enemy)
-    z.set_position(randint(0, 160), randint(0, 120))
-    if abs(z.x - protagonista.x) < 40: z.x += 60
+    
+    # --- AJUSTE DE TAMAÑO ---
+    # Como las funciones automáticas fallaban, definimos el área manualmente.
+    # Si tu mapa es muy grande, aumenta estos números (ej. 500, 1000).
+    ancho_zona = 250
+    alto_zona = 250
+    
+    z.set_position(randint(10, ancho_zona), randint(10, alto_zona))
+    
+    # Si aparecen muy cerca del jugador, los movemos para evitar daño injusto
+    if abs(z.x - protagonista.x) < 40:
+        z.x += 60
+        
     z.follow(protagonista, 30 + (ronda * 3))
 
 def nueva_ronda(n: number):
@@ -85,15 +95,19 @@ def nueva_ronda(n: number):
 
 def tienda():
     global oro, velocidad
+    # Pausamos el seguimiento de cámara momentáneamente
+    scene.camera_follow_sprite(None)
     scene.set_background_color(15)
-    # Story choices es seguro porque usa su propia interfaz
+    
     story.show_player_choices("Botas (+Vel)", "Continuar")
     if story.check_last_answer("Botas (+Vel)") and oro >= 40:
         oro -= 40
         velocidad += 20
         controller.move_sprite(protagonista, velocidad, velocidad)
+    
     info.set_score(oro)
-    scene.set_background_color(13)
+    # Al salir, recargamos mapa y cámara
+    cargar_mapa()
     proximo_paso()
 
 def muerte_enemigo(b, e):

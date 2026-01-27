@@ -7,7 +7,7 @@ let vivos = 0
 let oro = 50
 let velocidad = 100
 let dificultad = [5, 10, 15, 20, 30]
-//  --- SPRITE ---
+//  --- SPRITE DEL JUGADOR ---
 let protagonista = sprites.create(img`
     . . . . . . . . . . . . . . . .
     . . . . 2 2 2 2 2 . . . . . . .
@@ -21,26 +21,26 @@ let protagonista = sprites.create(img`
     . . . . 8 . . . 8 . . . . . . .
 `, SpriteKind.Player)
 protagonista.setFlag(SpriteFlag.Invisible, true)
-//  --- SISTEMA DE TEXTO (Splash para evitar bugs visuales) ---
+//  --- MAPA (Usando tu asset 'mapa') ---
+function cargar_mapa() {
+    //  Carga tu tilemap llamado "mapa"
+    tiles.setCurrentTilemap(assets.tilemap`mapa`)
+    //  Hacemos que la cámara siga al jugador
+    scene.cameraFollowSprite(protagonista)
+}
+
+//  --- SISTEMA DE TEXTO ---
 function iniciar_historia() {
-    /** 
-    Usa game.splash para asegurar fondo negro y letras limpias.
-    Esto elimina el bug de letras amontonadas.
-    
- */
-    //  Limpiamos marcos para que no queden restos
     game.setDialogFrame(null)
     scene.setBackgroundColor(15)
     pause(200)
-    //  game.splash es mucho más estable que show_long_text para estos errores
     game.splash("ZOMBIE SURVIVAL", "MERCHANT")
     game.splash("HISTORIA:", `Eres el ultimo mercader.
 Protege tu stock.`)
-    //  Separamos la misión para que no se pisen las letras
     game.splash("MISION: Mata zombies,", "gana oro y mejora.")
     game.splash("OBJETIVO FINAL:", "SOBREVIVE 5 DIAS")
-    //  Iniciamos el juego
-    scene.setBackgroundColor(13)
+    //  Cargamos el mapa y mostramos al jugador
+    cargar_mapa()
     protagonista.setFlag(SpriteFlag.Invisible, false)
 }
 
@@ -64,7 +64,13 @@ function spawn() {
         . . . 5 f f 5 .
         . . . d d d d .
     `, SpriteKind.Enemy)
-    z.setPosition(randint(0, 160), randint(0, 120))
+    //  --- AJUSTE DE TAMAÑO ---
+    //  Como las funciones automáticas fallaban, definimos el área manualmente.
+    //  Si tu mapa es muy grande, aumenta estos números (ej. 500, 1000).
+    let ancho_zona = 250
+    let alto_zona = 250
+    z.setPosition(randint(10, ancho_zona), randint(10, alto_zona))
+    //  Si aparecen muy cerca del jugador, los movemos para evitar daño injusto
     if (Math.abs(z.x - protagonista.x) < 40) {
         z.x += 60
     }
@@ -84,8 +90,9 @@ function nueva_ronda(n: number) {
 //  --- TIENDA Y AVANCE ---
 function tienda() {
     
+    //  Pausamos el seguimiento de cámara momentáneamente
+    scene.cameraFollowSprite(null)
     scene.setBackgroundColor(15)
-    //  Story choices es seguro porque usa su propia interfaz
     story.showPlayerChoices("Botas (+Vel)", "Continuar")
     if (story.checkLastAnswer("Botas (+Vel)") && oro >= 40) {
         oro -= 40
@@ -94,7 +101,8 @@ function tienda() {
     }
     
     info.setScore(oro)
-    scene.setBackgroundColor(13)
+    //  Al salir, recargamos mapa y cámara
+    cargar_mapa()
     proximo_paso()
 }
 
