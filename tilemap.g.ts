@@ -6,7 +6,7 @@ namespace myTiles {
     helpers._registerFactory("tilemap", function(name: string) {
         switch(helpers.stringTrim(name)) {
             case "mapa":
-            case "mapa1":return tiles.createTilemap(hex`100010000b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0d0d0c0d0d0d0d0d0d0d0d0d0c0d0b0b0c0c0c0c0c0c0c0c0c0c01010c0c0b0b0d010c0c0c0d0d0d0c0c0d010d0c0b0b0c0c010c0d0d0c0c0c0d0d0d010c0b0b0c0d010c0c0c0c0d0d0d0d0d010c0b0b0c0d01010c070909080d0d0d010c0b0b0d0c0d010c030202040d0d0d010c0b0b0d0c0d0c0c030202040d0d0d010c0b0b0d0c0d0c0d060a0a050c0d0d0d0c0b0b0d0d0c010d0c0c0c0c0c0d010c0c0b0b0d0d0c0101010101010101010c0d0b0b0d0c0c01010d0d0c0c0d0d0c0c0d0b0b0d0c0d0d0d0c0d0d0d0c0c0c0c0c0b0b0d0c0d0c0c0d0d0d0d0d0d0d0c0c0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b`, img`
+            case "mapa1":return tiles.createTilemap(hex`1000100007080808080808080808080808080801060b0b0b0b0b0b0b0b0b0b0b0b0b0b02060b0b0a0a0a0a0a0a090b0b0a0b0b02060b0b0b0a090b090a090a0b0b0b0b02060b0b0b0a090b0b090a0a0a0b0b0b02060b0b0a0a0a0b0b0a0b0a0a0b0a0b02060b090a0a0b0b0a0b0a0a0b0b0a0b02060b090a0a09090b0b0a0b09090b0a02060b0b090a090a0b0b0b090a090b0b02060b0b0b0b0a0a0b0b0a0909090a0b02060b0a0b0b0b090b0a09090b0a0a0b02060b0b0b0a0a0a0a09090b0b0a0a0b02060b0b0b09090b0a09090b0a0b0a0b02060b0a0a0b0b0b0909090a0a0a0a0a02060b0b090b0b0b0b0b0a0a0b0a0a0b0205040404040404040404040404040403`, img`
 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 
 2 . . . . . . . . . . . . . . 2 
 2 . . . . . . . . . . . . . . 2 
@@ -23,7 +23,7 @@ namespace myTiles {
 2 . . . . . . . . . . . . . . 2 
 2 . . . . . . . . . . . . . . 2 
 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 
-`, [myTiles.transparency16,sprites.castle.tileGrass2,sprites.castle.tilePath5,sprites.castle.tilePath4,sprites.castle.tilePath6,sprites.castle.tilePath9,sprites.castle.tilePath7,sprites.castle.tilePath1,sprites.castle.tilePath3,sprites.castle.tilePath2,sprites.castle.tilePath8,sprites.builtin.forestTiles0,sprites.castle.tileGrass1,sprites.castle.tileGrass3], TileScale.Sixteen);
+`, [myTiles.transparency16,sprites.dungeon.purpleOuterNorthEast,sprites.dungeon.purpleOuterEast0,sprites.dungeon.purpleOuterSouthWest,sprites.dungeon.purpleOuterSouth1,sprites.dungeon.purpleOuterSouthEast,sprites.dungeon.purpleOuterWest1,sprites.dungeon.purpleOuterNorthWest,sprites.dungeon.purpleOuterNorth0,sprites.castle.tileDarkGrass3,sprites.castle.tileDarkGrass2,sprites.castle.tileDarkGrass1], TileScale.Sixteen);
         }
         return null;
     })
