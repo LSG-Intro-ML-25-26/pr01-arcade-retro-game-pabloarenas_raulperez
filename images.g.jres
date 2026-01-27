@@ -4,6 +4,26 @@
         "mimeType": "image/x-mkcd-f4",
         "displayName": "nena-front"
     },
+    "image2": {
+        "data": "hwQgACAAAAAAAAAABsDMxgwAAAAAAAAAAAAAYGbMbMZsDAAAAAAAAAAAAGBmdmfGZwwAAAAAAAAAAABmZndmdmfMDAAAAAAAAAAAZndmZmfGxswMAAAAAAAAZnZ3ZnZnZsZmDAAAAAAAYHd2Z2d2dnd2x8wAAAAAAGB3ZnZnZnZnd8bMDAAAAABgZnd3Z3dmZsZszAwAAAAAZnZ3d3Z3dmdmd8YAAA4AYHd2d3d3d3d3dmfMDAAOAGB3dnd3d3d3Z2bGZswADgBgd3d3dXd3d3Z3ZmbG8P4AZld1V3V3d2Z3Z2bGzO/+AGZXVVd3d3dnd2Z3Zsbu/wB2d1V3d3d3d2ZmdmfM7v4PdndXVVV3d3dnZmbGzO7u7mB3VXdVdXd3Z3Z3Zszu7g5gV1VXd3d3ZmZmd2fG7v8AAHZ3V3V3d2d3Z8bMzP4PAGB3d1d1d3d3dndmzMzgDgBgd3d3dXdnZmZmZsYMAO4AYHd2d3d3Z3dmZ8bMDADgAGBmd3d3d2d3Z3dmzAAAAAAAYHd2d3Z3dmd2ZswMAAAAAGBndndnd2ZmZmzGDAAAAAAAZmZ2Z2Z3Z2bGzAAAAAAAAHZ2Z2dmdmdsxgwAAAAAAAB2dndmZ2ZmzMYMAAAAAAAAYGBmZnfGxswMAAAAAAAAAAAAZmB2xszMDAAAAAAAAAAAAGDAbMYMAAAAAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "myImage"
+    },
+    "image3": {
+        "data": "hwQwADAAAAAAAADQ293b3dvd293b3by7u7u7y8wAAAAAAADAvMu8y7zLvMu8y9y7u7u7u8sMAAAAAADAu8u7y7vLu8u7y9y8u7u7u7vLAAAAAACqqKqKqqqoqoqqytzLi4iIiLi7DAAAAACqqKqKqqqoqoqqutzNrTgzM7PdvQAAAKCIiIiIiIiIiIiIvNzNrTjP87y92wsAAKCoqoqqqqiqiqqqvNzNrTjP87y9270AAKCoqoqqqqiqiqqqu9zNrTgzM7O928sAAIiIiIiIiIiIiIjIy9vNrTjP87zd3csAAKiqiqqqqKqKqqrIy9vNrTjP87y928sAAKiqiqqqqKqKqqq4y9vNrTgzM7O9270AgIiIiIiIiIiIiIi8vNvNjYiIiLi9270AoKqKqqqoqoqqqoq83NvN3d3d3d3d3b0AoKqKqqqoqoqqqoq73LvMzMzMzMzMzMwAioiIiIiIiIiIiMi728vbEbG7u7u7u7sAqoqqqqiqqqiqqsjLvdwdsbu7u7u7u7sAqoqqqqiqqqiqqrjLzdux6/7/7+7+/++giIiIiIiIiIiIiLy7zd2xPjMzMzMzMzOgiqqqiqqqiqqqirzcvd2xvrvrvru7u7ugiqqqiqqqiqqqirvcvd2xPjP/PjMzMzOIiIiIiIiIiIiIyLvbvd2xPuP/PjMzMzOKqqqoqoqqqqiqyMvdvd2xvvv/vru7u7uIiIiIiIiIiIiIuMvdvd2xPvP/PjMzMzOqqqqqqqqqqqqqusvdvd2xPvP/PjMzMzOqqqqqqqqqqqqqusvdvd2xvvv/vru7u7uIiIiIiIiIiIiIuMvdvd2xPvP/PjMzMzOqqKqoqoqqqqiqyMvdvd2xPvP/PjMzMzOIiIiIiIiIiIiIyLvbvd2xvuv/vvv/u7ugiqqqiqqqiqqqirvcvd2xPjP/PuM/PzOgiqqqiqqqiqqqirzcvd2xPjPjPuM/PzOgiIiIiIiIiIiIiLy7zd2xvru7u+v/vrsAqoqqqqiqqqiqqrjLzdux6+7u7u7u7u4AqoqqqqiqqqiqqsjLvdwdsbu7u7u7u7sAioiIiIiIiIiIiMi728vbEbG7u7u7u7sAoKqKqqqoqoqqqoq73LvMzMzMzMzMzMwAoKqKqqqoqoqqqoq83NvN3d3d3d3d3b0AgIiIiIiIiIiIiIi8vNvNjYiIiLi9270AAKiqiqqqqKqKqqq4y9vNrTgzM7O9270AAKiqiqqqqKqKqqrIy9vNrTjP87y928sAAIiIiIiIiIiIiIjIy9vNrTjP87zd3csAAKCoqoqqqqiqiqqqu9zNrTgzM7O928sAAKCoqoqqqqiqiqqqvNzNrTjP87y9270AAKCIiIiIiIiIiIiIvNzNrTjP87y92wsAAACqqKqKqqqoqoqqutzNrTgzM7PdvQAAAACqqKqKqqqoqoqqytzLi4iIiLi7DAAAAADAu8u7y7vLu8u7y9y8u7u7u7vLAAAAAADAvMu8y7zLvMu8y9y7u7u7u8sMAAAAAADQ293b3dvd293b3by7u7u7y8wAAAA=",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "miImagen"
+    },
+    "image4": {
+        "data": "hwQYACgAAAAAAAAAAAAAAAAAAADwDwD/AAAAAAAAAAAAAAAAAPD/AI////YAAAAAAAAAAAAAAAAAb4//iI9v9g8AAAAAAAAAAAAAAPBmiI/4/2ZoDwAAAAAAAAAA//D/b2Zo9v/4j2YPAAAAAAAAAPD4j/hohmb2j/j/Zv8AAAAAAACAj/iI/2ZmZoj4/2/2iA8AAAAAAGiI//+P+GiGiP/4b2j2DwAAAADwZmiP+I//Zmb2j/iPZv8PAP8AAI+GZoj//49mZviI/2iGaPj/7gCIZmaG+I/4/2iG/////49m/+7+gGZmZmb2iP+PZmaI+P//Zvbv7u6AZmZmZvj//2hmhoj//2hmhu/u/wCIZmaGiP///49m//j/b2aI+O7+AACPhmaP+P+PZmb2iP//aIj4/+4AAPBmaP//j/9mZoaP+GZm9g8A/wAAAGiIj/iP+GiG+P//b2j2DwAAAAAAgI/4iP9mZmaI/4hv9ogPAAAAAAAA8Pj//2iGZoj4j4hm/w8AAAAAAAAA/wD/j2Zo9v//j2YPAAAAAAAAAAAAAAAAaIb4j/hmaA8AAAAAAAAAAAAAAACA9oj/iG/2DwAAAAAAAAAAAAAAAAD/jw////YAAAAAAAAAAAAAAAAAAADwDwDwDwAAAAA=",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "miImagen1"
+    },
+    "image5": {
+        "data": "hwQgACAAAAAAAPAAAAAAAAAAAAAAAAAAAADwAAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAAAAAAAAAPAADwDwAAAAAAAAAAAAAACAAACAAAAAAAAAAA8AAAiP8AAAgAAAAAAAAAAIAA8PD4AAAIAAAAAAAAAAD4AAAAj/8ACAAAAAAAAAAADwAAAPD4APgAAAAAAAAAAA8AAAAA+A+PAAAAAAAAAPAIAAAAAPAP8AgAAAAAAACADwAAAADw+PAPAAAAAAAAgPDwCP8PAP+PDwAAAAAAAPAPAI+I+A/wjw8AAAAAAACPDwAAAP/////4AAAAAACAiA8AAAAA////iPgAAADwiP8AAPj/AAD//4+IiIiIiIgPAAAAAIgP8P//j4iIiPj//w8AAP+A+A/////////////4AP8AAP//j///////////DwAAAAAAiP///////////wAAAADwiPj/+P8PAAAA8P8PAADwiP8P8PgPAAAAAADw/wAA/wgAAP//AAAAAAAA8PAA8A8AAPD4AAAAAAAAAAD/APAAAAD/DwAAAAAAAAAADwDw8ACA+AAAAAAAAAAAAPAAD/CPj/8AAAAAAAAAAADwAA8A8P8PAAAAAAAAAAAA8AAAAADwAAAAAAAAAAAAAPAAAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "miImagen2"
+    },
     "anim1": {
         "namespace": "myAnimations",
         "id": "anim1",
