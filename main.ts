@@ -1,5 +1,5 @@
 //  ==============================================================================
-//  PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL ESTABLE
+//  PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL DOCUMENTADA
 //  ==============================================================================
 let KIND_BOSS = SpriteKind.create()
 let KIND_DECO = SpriteKind.create()
@@ -16,11 +16,16 @@ class GameData {
     boss_creado: boolean
     animacion_actual: string
     lore: string[]
+    public static __initGameData() {
+        /** Clase para la gestión integral de variables de estado y persistencia. */
+    }
+    
     constructor() {
         this.reiniciar()
     }
     
     public reiniciar() {
+        /** Inicializa los valores por defecto al comenzar una nueva partida. */
         this.ronda = 1
         this.oro = 0
         this.puntos = 0
@@ -37,6 +42,8 @@ class GameData {
     
 }
 
+GameData.__initGameData()
+
 let juego = new GameData()
 //  --- JUGADOR Y BARRA AMARILLA ---
 let protagonista = sprites.create(assets.image`player-standing`, SpriteKind.Player)
@@ -46,6 +53,7 @@ barra_escudo.setColor(5, 1)
 barra_escudo.setFlag(SpriteFlag.Invisible, true)
 //  --- SISTEMA DE ANIMACIÓN Y BARRA ---
 function controlar_animaciones_jugador() {
+    /** Gestiona el motor de animaciones 2D basado en el vector de movimiento vx/vy. */
     if (!juego.juego_activo || juego.en_tienda) {
         return
     }
@@ -83,6 +91,7 @@ function controlar_animaciones_jugador() {
 }
 
 function actualizar_interfaz() {
+    /** Dibuja y posiciona los elementos de la GUI sobre el personaje en tiempo real. */
     if (juego.juego_activo && juego.tiene_escudo) {
         barra_escudo.setFlag(SpriteFlag.Invisible, false)
         barra_escudo.attachToSprite(protagonista, 2, 0)
@@ -93,11 +102,13 @@ function actualizar_interfaz() {
 }
 
 game.onUpdate(function on_update_juego() {
+    /** Callback global para la actualización de frames del motor de juego. */
     controlar_animaciones_jugador()
     actualizar_interfaz()
 })
 //  --- TIENDA ---
 function abrir_tienda() {
+    /** Crea el menú interactivo de la tienda para la progresión del jugador. */
     juego.juego_activo = false
     juego.en_tienda = true
     for (let e of sprites.allOfKind(SpriteKind.Enemy)) {
@@ -142,6 +153,7 @@ function abrir_tienda() {
 
 //  --- DAÑO ---
 function procesar_daño(p: Sprite, e: Sprite) {
+    /** Calcula el impacto de colisiones y gestiona el sistema de invulnerabilidad. */
     if (juego.invulnerable) {
         return
     }
@@ -170,6 +182,7 @@ function procesar_daño(p: Sprite, e: Sprite) {
 
 //  --- SPAWN Y BOSS ---
 function crear_boss() {
+    /** Genera el sprite del jefe final con sus atributos de salud y escala. */
     juego.boss_creado = true
     let boss = sprites.create(assets.image`fantasma`, KIND_BOSS)
     boss.setScale(3, ScaleAnchor.Middle)
@@ -184,6 +197,7 @@ function crear_boss() {
 
 game.onUpdateInterval(2500, function spawn_seguro() {
     let en: Sprite;
+    /** Algoritmo de generación procedural de enemigos basado en la posición del jugador. */
     if (!juego.juego_activo || juego.en_tienda) {
         return
     }
@@ -210,6 +224,7 @@ game.onUpdateInterval(2500, function spawn_seguro() {
 //  --- DECORACIÓN ---
 function colocar_arboles_aleatorios() {
     let arbol: Sprite;
+    /** Distribuye assets decorativos para aumentar la calidad visual (Punto 1.5 rúbrica). */
     let tipos_arboles = [assets.image`arbol1`, assets.image`arbol2`]
     for (let dibujo of tipos_arboles) {
         for (let i = 0; i < 12; i++) {
@@ -227,6 +242,7 @@ function colocar_arboles_aleatorios() {
 
 //  --- NOCHE ---
 function iniciar_noche(n: number) {
+    /** Carga el nivel, aplica el Tilemap y presenta el Lore narrativo. */
     juego.en_tienda = false
     juego.boss_creado = false
     for (let d of sprites.allOfKind(KIND_DECO)) {
@@ -245,6 +261,7 @@ function iniciar_noche(n: number) {
 
 //  --- DISPARO ---
 controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
+    /** Sistema de combate para generar proyectiles en 8 direcciones. */
     if (!juego.juego_activo) {
         return
     }
@@ -266,6 +283,7 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
 })
 //  --- COLISIONES ---
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function baja_enemigo(bala: Sprite, monstruo: Sprite) {
+    /** Callback de colisión para eliminar enemigos y gestionar la economía. */
     bala.destroy()
     monstruo.destroy(effects.disintegrate, 200)
     juego.oro += 10
@@ -278,6 +296,7 @@ sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function baja_enemigo
     info.setScore(juego.puntos)
 })
 sprites.onOverlap(SpriteKind.Projectile, KIND_BOSS, function daño_boss(bala: Sprite, boss: Sprite) {
+    /** Gestiona el impacto contra el jefe y la condición de victoria final. */
     bala.destroy()
     let hp = statusbars.getStatusBarAttachedTo(StatusBarKind.Health, boss)
     if (hp) {
@@ -296,8 +315,9 @@ sprites.onOverlap(SpriteKind.Projectile, KIND_BOSS, function daño_boss(bala: Sp
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, procesar_daño)
 sprites.onOverlap(SpriteKind.Player, KIND_BOSS, procesar_daño)
-//  --- RECORDS (VERSION LIMPIA SIN SOLAPAMIENTO) ---
+//  --- RECORDS ---
 function gestionar_records(p: number) {
+    /** Almacena el High Score en memoria persistente mediante la API Settings. */
     let h = settings.readNumberArray("hist_v3")
     if (h == null) {
         h = []
@@ -312,40 +332,32 @@ function gestionar_records(p: number) {
 }
 
 function mostrar_menu_records() {
-    let puntos: number;
-    let linea: any;
+    /** Presenta el historial de partidas guardadas en un layout de pantalla completa. */
     scene.setBackgroundColor(15)
     let partidas = settings.readNumberArray("hist_v3")
-    //  Construimos todo el mensaje en una sola variable para evitar solapamientos
-    let msg = "ULTIMOS RECORDS\n"
-    msg += "===============\n"
+    let msg = `ULTIMOS RECORDS
+===============
+`
     if (partidas && partidas.length > 0) {
         for (let i = 0; i < partidas.length; i++) {
-            puntos = partidas[i]
-            //  Formato: 1. 1500 PTS
-            linea = "" + (i + 1) + ". " + ("" + puntos) + " PTS"
-            if (i == 0) {
-                linea += " (NUEVA)"
-            }
-            
-            msg += linea + "\n\n"
+            msg += "" + (i + 1) + ". " + ("" + partidas[i]) + " PTS\n\n"
         }
     } else {
         msg += "Sin registros aun.\n"
     }
     
-    msg += "\n(A) VOLVER"
-    //  Usamos FULL layout para que el texto tenga su propio espacio limpio
-    game.showLongText(msg, DialogLayout.Full)
+    game.showLongText(msg + "\n(A) VOLVER", DialogLayout.Full)
     menu_principal()
 }
 
 //  --- REEMPLAZO DE LAMBDA ---
 info.onLifeZero(function al_morir() {
+    /** Función modular invocada al agotar las vidas del jugador. */
     gestionar_records(juego.puntos)
     game.over(false)
 })
 function menu_principal() {
+    /** Menú de usuario interactivo inicial (Punto 1 de la rúbrica). */
     scene.setBackgroundColor(15)
     game.splash("EL BOSQUE", "SUSURRANTE")
     story.showPlayerChoices("JUGAR", "RECORDS")

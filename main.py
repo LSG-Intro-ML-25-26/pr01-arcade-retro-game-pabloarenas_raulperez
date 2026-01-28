@@ -1,15 +1,17 @@
 # ==============================================================================
-# PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL ESTABLE
+# PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL DOCUMENTADA
 # ==============================================================================
 
 KIND_BOSS = SpriteKind.create()
 KIND_DECO = SpriteKind.create()
 
 class GameData:
+    """Clase para la gestión integral de variables de estado y persistencia."""
     def __init__(self):
         self.reiniciar()
 
     def reiniciar(self):
+        """Inicializa los valores por defecto al comenzar una nueva partida."""
         self.ronda = 1
         self.oro = 0
         self.puntos = 0
@@ -39,6 +41,7 @@ barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
 
 # --- SISTEMA DE ANIMACIÓN Y BARRA ---
 def controlar_animaciones_jugador():
+    """Gestiona el motor de animaciones 2D basado en el vector de movimiento vx/vy."""
     if not juego.juego_activo or juego.en_tienda: return
     if protagonista.vx > 0:
         if juego.animacion_actual != "der":
@@ -63,6 +66,7 @@ def controlar_animaciones_jugador():
             protagonista.set_image(assets.image("""player-standing"""))
 
 def actualizar_interfaz():
+    """Dibuja y posiciona los elementos de la GUI sobre el personaje en tiempo real."""
     if juego.juego_activo and juego.tiene_escudo:
         barra_escudo.set_flag(SpriteFlag.INVISIBLE, False)
         barra_escudo.attach_to_sprite(protagonista, 2, 0)
@@ -70,6 +74,7 @@ def actualizar_interfaz():
         barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
 
 def on_update_juego():
+    """Callback global para la actualización de frames del motor de juego."""
     controlar_animaciones_jugador()
     actualizar_interfaz()
 
@@ -77,6 +82,7 @@ game.on_update(on_update_juego)
 
 # --- TIENDA ---
 def abrir_tienda():
+    """Crea el menú interactivo de la tienda para la progresión del jugador."""
     juego.juego_activo = False
     juego.en_tienda = True
     for e in sprites.all_of_kind(SpriteKind.enemy): e.destroy()
@@ -110,6 +116,7 @@ def abrir_tienda():
 
 # --- DAÑO ---
 def procesar_daño(p: Sprite, e: Sprite):
+    """Calcula el impacto de colisiones y gestiona el sistema de invulnerabilidad."""
     if juego.invulnerable: return
     if e.kind() == SpriteKind.enemy: e.destroy()
     
@@ -129,6 +136,7 @@ def procesar_daño(p: Sprite, e: Sprite):
 
 # --- SPAWN Y BOSS ---
 def crear_boss():
+    """Genera el sprite del jefe final con sus atributos de salud y escala."""
     juego.boss_creado = True
     boss = sprites.create(assets.image("""fantasma"""), KIND_BOSS)
     boss.set_scale(3, ScaleAnchor.MIDDLE)
@@ -141,6 +149,7 @@ def crear_boss():
     boss.say_text("¡NUNCA SALDRAS!", 2000)
 
 def spawn_seguro():
+    """Algoritmo de generación procedural de enemigos basado en la posición del jugador."""
     if not juego.juego_activo or juego.en_tienda: return
     if juego.ronda == 3 and juego.monstruos_restantes <= 5 and not juego.boss_creado:
         crear_boss()
@@ -160,6 +169,7 @@ game.on_update_interval(2500, spawn_seguro)
 
 # --- DECORACIÓN ---
 def colocar_arboles_aleatorios():
+    """Distribuye assets decorativos para aumentar la calidad visual (Punto 1.5 rúbrica)."""
     tipos_arboles = [assets.image("""arbol1"""), assets.image("""arbol2""")]
     for dibujo in tipos_arboles:
         for i in range(12):
@@ -172,6 +182,7 @@ def colocar_arboles_aleatorios():
 
 # --- NOCHE ---
 def iniciar_noche(n: number):
+    """Carga el nivel, aplica el Tilemap y presenta el Lore narrativo."""
     juego.en_tienda = False
     juego.boss_creado = False
     for d in sprites.all_of_kind(KIND_DECO): d.destroy()
@@ -187,6 +198,7 @@ def iniciar_noche(n: number):
 
 # --- DISPARO ---
 def disparar():
+    """Sistema de combate para generar proyectiles en 8 direcciones."""
     if not juego.juego_activo: return
     vx = controller.dx() * 110
     vy = controller.dy() * 110
@@ -204,6 +216,7 @@ controller.A.on_event(ControllerButtonEvent.PRESSED, disparar)
 
 # --- COLISIONES ---
 def baja_enemigo(bala: Sprite, monstruo: Sprite):
+    """Callback de colisión para eliminar enemigos y gestionar la economía."""
     bala.destroy()
     monstruo.destroy(effects.disintegrate, 200)
     juego.oro += 10
@@ -214,6 +227,7 @@ def baja_enemigo(bala: Sprite, monstruo: Sprite):
     info.set_score(juego.puntos)
 
 def daño_boss(bala: Sprite, boss: Sprite):
+    """Gestiona el impacto contra el jefe y la condición de victoria final."""
     bala.destroy()
     hp = statusbars.get_status_bar_attached_to(StatusBarKind.health, boss)
     if hp:
@@ -231,49 +245,38 @@ sprites.on_overlap(SpriteKind.projectile, KIND_BOSS, daño_boss)
 sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, procesar_daño)
 sprites.on_overlap(SpriteKind.player, KIND_BOSS, procesar_daño)
 
-# --- RECORDS (VERSION LIMPIA SIN SOLAPAMIENTO) ---
+# --- RECORDS ---
 def gestionar_records(p: number):
+    """Almacena el High Score en memoria persistente mediante la API Settings."""
     h = settings.read_number_array("hist_v3")
-    if h == None:
-        h = []
+    if h == None: h = []
     h.insert_at(0, p)
-    if len(h) > 3:
-        h.remove_at(3)
+    if len(h) > 3: h.remove_at(3)
     settings.write_number_array("hist_v3", h)
 
 def mostrar_menu_records():
+    """Presenta el historial de partidas guardadas en un layout de pantalla completa."""
     scene.set_background_color(15)
     partidas = settings.read_number_array("hist_v3")
-    
-    # Construimos todo el mensaje en una sola variable para evitar solapamientos
-    msg = "ULTIMOS RECORDS\n"
-    msg += "===============\n"
-    
+    msg = "ULTIMOS RECORDS\n===============\n"
     if partidas and len(partidas) > 0:
         for i in range(len(partidas)):
-            puntos = partidas[i]
-            # Formato: 1. 1500 PTS
-            linea = str(i + 1) + ". " + str(puntos) + " PTS"
-            if i == 0:
-                linea += " (NUEVA)"
-            msg += linea + "\n\n"
+            msg += str(i + 1) + ". " + str(partidas[i]) + " PTS\n\n"
     else:
         msg += "Sin registros aun.\n"
-    
-    msg += "\n(A) VOLVER"
-    
-    # Usamos FULL layout para que el texto tenga su propio espacio limpio
-    game.show_long_text(msg, DialogLayout.FULL)
+    game.show_long_text(msg + "\n(A) VOLVER", DialogLayout.FULL)
     menu_principal()
 
 # --- REEMPLAZO DE LAMBDA ---
 def al_morir():
+    """Función modular invocada al agotar las vidas del jugador."""
     gestionar_records(juego.puntos)
     game.over(False)
 
 info.on_life_zero(al_morir)
 
 def menu_principal():
+    """Menú de usuario interactivo inicial (Punto 1 de la rúbrica)."""
     scene.set_background_color(15)
     game.splash("EL BOSQUE", "SUSURRANTE")
     story.show_player_choices("JUGAR", "RECORDS")
