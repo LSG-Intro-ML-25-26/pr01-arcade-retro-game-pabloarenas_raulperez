@@ -4,92 +4,69 @@
 
 > Open this page at [https://raimonizard.github.io/makecode-arcade-template-nena-mov/](https://raimonizard.github.io/makecode-arcade-template-nena-mov/)
 
-🌲 EL BOSQUE SUSURRANTE 🌲
+# 🌲 EL BOSQUE SUSURRANTE - VERSIÓN FINAL
 
-"La meva avioneta ha caigut... El fred cala els meus ossos... Alguna cosa m'observa des de la foscor."
+> *Survival Arcade desarrollado en Python con Arcade/MakeCode.*
 
-Benvinguts a El Bosque Susurrante, un videojoc Survival Arcade desenvolupat en Python amb MakeCode Arcade. L'objectiu és resistir tres nits d'infern en un bosc generat proceduralment i derrotar l'Esperit que el custodia.
+---
 
-👥 Integrants del Projecte
+## 👥 Integrantes del Proyecto
 
-Aquest projecte ha estat desenvolupat per:
+Este proyecto ha sido desarrollado por:
 
-[NOM DEL PRIMER INTEGRANT]: [Rol, ex: Programació i Lògica]
+* **Pablo Arenas**
+* **Raúl Pérez**
 
-[NOM DEL SEGON INTEGRANT]: [Rol, ex: Art i Disseny de Nivells]
+---
 
-📜 Lore del Joc
+## 📜 Lore del Juego
 
-Ets un pilot que ha sobreviscut miraculosament a un accident aeri enmig d'un bosc maleït. Però la supervivència tot just comença. El bosc no és un lloc normal; canvia cada vegada que el mires (generació procedural) i està habitat per ànimes en pena que busquen companyia eterna.
+**Día 1: El Impacto**
+La historia te sitúa en la piel de un piloto superviviente tras un accidente aéreo en una zona desconocida. A través de un diario narrativo, vivirás el descenso a la locura:
 
-Tens 3 nits per escapar.
+> *"Mi avioneta cayó... El frío cala mis huesos... Algo me observa desde la oscuridad."*
 
-Nit 1: L'impacte. Recurssos escassos i primers contactes.
+El objetivo es sobrevivir **3 noches** (rondas) enfrentándote a los horrores del bosque hasta que despierta el **Espíritu del Bosque**.
 
-Nit 2: La resistència. Les onades augmenten.
+---
 
-Nit 3: El despertar. L'Esperit del Bosc es manifesta per impedir la teva fugida.
+## 👾 Personajes y Enemigos
 
-Entre nit i nit, trobaràs un Mercader Misteriós que et vendrà subministraments a canvi de l'or que recullis dels espectres caiguts.
+A continuación se detallan los elementos principales que encontrarás en el juego:
 
-👾 Personatges i Bestiari
+### 🦸‍♂️ El Piloto (Protagonista)
+Es el personaje controlado por el jugador. Cuenta con un sistema de **animaciones dinámicas** (caminar en 4 direcciones) y capacidad de disparo en 8 direcciones.
+* **Asset principal:** `player-standing.png`
+* **Habilidades:** Disparo, movimiento veloz y uso de escudos.
 
-A continuació presentem els assets principals utilitzats en el joc:
+![Imagen del Piloto](./assets/player-standing.png)
 
-Asset
+### 👻 Los Espectros (Enemigos)
+Son las almas en pena que habitan el bosque. Tienen la capacidad de **atravesar los muros** y persiguen al jugador implacablemente.
+* **Asset:** `fantasma.png`
+* **Comportamiento:** IA de persecución directa (`follow`).
 
-Nom
+![Imagen del Enemigo](./assets/fantasma.png)
 
-Descripció
+### 👹 El Espíritu (Jefe Final)
+Una manifestación gigante del bosque que aparece en la **Noche 3**.
+* **Asset:** `fantasma.png` (Escalado x3)
+* **Mecánica:** Posee una barra de vida propia (20 HP) y es necesario derrotarlo para ver el final del juego y escapar.
 
+![Imagen del Boss](./assets/boss_fantasma.png)
 
+---
 
-El Pilot (Protagonista)
+## 🎥 Demo Speed-run
 
-El jugador. Equipat amb la seva arma reglamentària. Disposa d'animacions de moviment en 4 direccions. És vulnerable, però pot comprar millores com botes de velocitat o escuts.
+Aquí puedes ver una demostración de una partida completa (Speed-run) donde se muestra la supervivencia a las 3 noches y la derrota del jefe final:
 
+[🎬 **Ver Vídeo Demo del Gameplay**](AQUI_TU_ENLACE_AL_VIDEO)
 
+---
 
-Els Espectres (Enemics)
+## 🛠️ Detalles Técnicos (Extra)
 
-Ànimes perdudes que habiten el bosc. Tenen la capacitat de travessar els arbres i murs, fent que cap refugi sigui segur per molt de temps.
-
-
-
-El Mercader
-
-Un personatge neutral. Apareix al final de cada ronda per oferir objectes vitals a canvi d'or. La seva botiga és l'únic moment de pau.
-
-
-
-L'Esperit del Bosc (BOSS)
-
-Apareix a la Nit 3. És un enemic gegant amb una barra de vida pròpia vinculada. No pararà de perseguir-te fins que un dels dos caigui.
-
-Nota: Els assets han estat dissenyats/seleccionats seguint una estètica Pixel Art retro coherent amb la paleta de colors del mapa (turquesa i violeta).
-
-🎥 Demo Speed-Run
-
-A continuació, podeu veure una demostració ràpida (speed-run) de com superar les 3 nits i derrotar el Boss final.
-
-<!-- INSTRUCCIÓ: Puja el teu vídeo .mp4 al repositori o a YouTube i posa l'enllaç aquí sota -->
-
-(Si el vídeo no es reprodueix, fes clic [aquí] para veure'l directament).
-
-🚀 Instal·lació i Execució
-
-Per jugar a El Bosque Susurrante:
-
-Descarrega el fitxer .uf2 des de la secció de Releases.
-
-Carrega'l a la teva consola Meowbit o executa'l al simulador de MakeCode Arcade.
-
-Controls:
-
-**Creueta/WASD:**oure el personatge.
-
-A / Espai: Disparar / Confirmar a la botiga.
-
-B: Enrere / Cancel·lar.
-
-Projecte realitzat per a l'assignatura de Desenvolupament d'Entorns Interactius (RA1-PR02).
+* **Generación Procedural:** El bosque nunca es igual; los árboles (`arbol1`, `arbol2`) se colocan aleatoriamente en cada partida.
+* **Tienda:** Entre noches, puedes gastar el oro obtenido en **Curación**, **Botas de velocidad** o un **Escudo**.
+* **Persistencia:** El juego guarda tus 3 mejores puntuaciones automáticamente.
