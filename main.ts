@@ -1,9 +1,10 @@
 //  ==============================================================================
-//  PROYECTO: LA CABAÑA - NOCHE ETERNA (VERSIÓN 100% COMPATIBLE)
+//  PROYECTO: LA CABAÑA - NOCHE ETERNA (VERSIÓN FINAL CORREGIDA)
 //  ==============================================================================
 class GameData {
     ronda: number
     oro: number
+    puntos: number
     vivos: number
     velocidad: number
     tiene_escudo: boolean
@@ -11,10 +12,15 @@ class GameData {
     lore: string[]
     dificultad: number[]
     constructor() {
+        this.reiniciar()
+    }
+    
+    public reiniciar() {
         this.ronda = 1
         this.oro = 0
+        this.puntos = 0
         this.vivos = 0
-        this.velocidad = 100
+        this.velocidad = 70
         this.tiene_escudo = false
         this.invulnerable = false
         this.lore = ["Noche 1: Papa no ha vuelto. Solo me queda su viejo revolver.", "Noche 2: He visto sombras caminar en dos patas. No son lobos...", "Noche 3: Un mercader paso por la cabaña. Compre suministros.", "Noche 4: El bosque entero ruge. Intentan entrar por las ventanas.", "Noche 5: Es el final. Si aguanto hasta el alba, sere libre."]
@@ -24,15 +30,15 @@ class GameData {
 }
 
 let juego = new GameData()
-//  --- FUNCIONES DE PERSISTENCIA ---
-function gestionar_records(puntuacion_final: number) {
+//  --- PERSISTENCIA (RECORDS) ---
+function gestionar_records(puntos_finales: number) {
     let temp: number;
-    let tops = settings.readNumberArray("tops_v4")
+    let tops = settings.readNumberArray("records_vfinal")
     if (!tops) {
         tops = []
     }
     
-    tops.push(puntuacion_final)
+    tops.push(puntos_finales)
     for (let i = 0; i < tops.length; i++) {
         for (let j = 0; j < tops.length - 1; j++) {
             if (tops[j] < tops[j + 1]) {
@@ -47,27 +53,29 @@ function gestionar_records(puntuacion_final: number) {
         tops.removeAt(3)
     }
     
-    settings.writeNumberArray("tops_v4", tops)
+    settings.writeNumberArray("records_vfinal", tops)
 }
 
 function mostrar_menu_records() {
     scene.setBackgroundColor(15)
-    let tops = settings.readNumberArray("tops_v4")
-    let msg = `--- MEJORES PARTIDAS ---
+    let tops = settings.readNumberArray("records_vfinal")
+    let msg = `TOP CAZADORES
+==============
 `
     if (tops && tops.length > 0) {
         for (let i = 0; i < tops.length; i++) {
-            msg += "" + (i + 1) + ". " + ("" + tops[i]) + " Oro\n"
+            msg += "" + (i + 1) + ". " + ("" + tops[i]) + " PTS\n\n"
         }
     } else {
-        msg += "Sin registros todavia."
+        msg += `
+Sin registros todavia.`
     }
     
     game.showLongText(msg, DialogLayout.Center)
     menu_principal()
 }
 
-//  --- JUGABILIDAD ---
+//  --- SPRITES ---
 let protagonista = sprites.create(img`
     . . . . . . . . . . . . . . . .
     . . . . 2 2 2 2 2 . . . . . . .
@@ -84,6 +92,127 @@ protagonista.setFlag(SpriteFlag.Invisible, true)
 let barra_escudo = statusbars.create(20, 4, StatusBarKind.Energy)
 barra_escudo.setFlag(SpriteFlag.Invisible, true)
 barra_escudo.setColor(9, 2)
+//  --- DISPARO ---
+controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
+    let vx: number;
+    let vy: number;
+    let bala: Sprite;
+    if (!(protagonista.flags & SpriteFlag.Invisible)) {
+        vx = controller.dx() * 80
+        vy = controller.dy() * 80
+        if (vx == 0 && vy == 0) {
+            vx = 80
+            vy = 0
+        }
+        
+        bala = sprites.createProjectileFromSprite(img`
+            . . 5 . .
+            . 5 4 5 .
+            5 4 4 4 5
+            . 5 4 5 .
+            . . 5 . .
+        `, protagonista, vx, vy)
+        music.pewPew.play()
+    }
+    
+})
+//  --- TIENDA ---
+function abrir_tienda() {
+    if (info.life() <= 0) {
+        return
+    }
+    
+    //  Limpiamos proyectiles sueltos para evitar ruidos
+    for (let b of sprites.allOfKind(SpriteKind.Projectile)) {
+        b.destroy()
+    }
+    scene.setBackgroundColor(15)
+    while (true) {
+        game.showLongText("ORO: " + ("" + juego.oro), DialogLayout.Bottom)
+        story.showPlayerChoices("Medikit (15g)", "Escudo (30g)", "Botas (20g)", "Siguiente Noche")
+        if (story.checkLastAnswer("Siguiente Noche")) {
+            break
+        } else if (story.checkLastAnswer("Medikit (15g)")) {
+            if (juego.oro >= 15) {
+                if (info.life() < 3) {
+                    juego.oro -= 15
+                    info.changeLifeBy(1)
+                    music.powerUp.play()
+                } else {
+                    game.showLongText("Vida al maximo", DialogLayout.Bottom)
+                }
+                
+            } else {
+                game.showLongText("Oro insuficiente", DialogLayout.Bottom)
+            }
+            
+        } else if (story.checkLastAnswer("Escudo (30g)")) {
+            if (juego.oro >= 30) {
+                juego.oro -= 30
+                juego.tiene_escudo = true
+                barra_escudo.value = 3
+                barra_escudo.max = 3
+                barra_escudo.attachToSprite(protagonista, -4, 0)
+                barra_escudo.setFlag(SpriteFlag.Invisible, false)
+            } else {
+                game.showLongText("Oro insuficiente", DialogLayout.Bottom)
+            }
+            
+        } else if (story.checkLastAnswer("Botas (20g)")) {
+            if (juego.oro >= 20) {
+                juego.oro -= 20
+                juego.velocidad = 150
+            } else {
+                game.showLongText("Oro insuficiente", DialogLayout.Bottom)
+            }
+            
+        }
+        
+    }
+    info.setScore(juego.puntos)
+    controller.moveSprite(protagonista, juego.velocidad, juego.velocidad)
+    juego.ronda += 1
+    if (juego.ronda <= 5) {
+        iniciar_noche(juego.ronda)
+    } else {
+        gestionar_records(juego.puntos)
+        game.over(true)
+    }
+    
+}
+
+//  --- LÓGICA DE COMBATE ---
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function dano_jugador(p: Sprite, e: Sprite) {
+    if (juego.invulnerable) {
+        return
+    }
+    
+    e.destroy()
+    juego.vivos -= 1
+    if (juego.tiene_escudo && barra_escudo.value > 0) {
+        barra_escudo.value -= 1
+        music.baDing.play()
+        juego.invulnerable = true
+        pause(500)
+        juego.invulnerable = false
+        if (barra_escudo.value <= 0) {
+            juego.tiene_escudo = false
+            barra_escudo.setFlag(SpriteFlag.Invisible, true)
+        }
+        
+    } else {
+        info.changeLifeBy(-1)
+        scene.cameraShake(4, 500)
+    }
+    
+    //  Comprobación de fin de noche tras daño
+    if (info.life() > 0 && juego.vivos <= 0) {
+        pause(500)
+        //  Pausa para que el jugador respire
+        abrir_tienda()
+    }
+    
+})
 function iniciar_noche(n: number) {
     scene.setBackgroundColor(15)
     protagonista.setFlag(SpriteFlag.Invisible, true)
@@ -111,97 +240,25 @@ function crear_enemigo() {
     enemigo.follow(protagonista, 30 + juego.ronda * 5)
 }
 
-function abrir_tienda() {
-    scene.setBackgroundColor(15)
-    while (true) {
-        game.showLongText("MERCADER - ORO: " + ("" + juego.oro), DialogLayout.Bottom)
-        story.showPlayerChoices("Escudo (30g)", "Botas (20g)", "Continuar")
-        if (story.checkLastAnswer("Continuar")) {
-            break
-        } else if (story.checkLastAnswer("Escudo (30g)") && juego.oro >= 30) {
-            juego.oro -= 30
-            juego.tiene_escudo = true
-            barra_escudo.value = 3
-            barra_escudo.max = 3
-            barra_escudo.attachToSprite(protagonista, -4, 0)
-            barra_escudo.setFlag(SpriteFlag.Invisible, false)
-        } else if (story.checkLastAnswer("Botas (20g)") && juego.oro >= 20) {
-            juego.oro -= 20
-            juego.velocidad = 150
-        }
-        
-    }
-    info.setScore(juego.oro)
-    controller.moveSprite(protagonista, juego.velocidad, juego.velocidad)
-    juego.ronda += 1
-    if (juego.ronda <= 5) {
-        iniciar_noche(juego.ronda)
-    } else {
-        gestionar_records(juego.oro)
-        game.over(true)
-    }
-    
-}
-
-//  --- SOLUCIÓN A LOS ERRORES DE SPRITEFLAG Y LAMBDA ---
-//  Sustitución de lambda por función normal
-controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
-    let proj: Sprite;
-    if (!(protagonista.flags & SpriteFlag.Invisible)) {
-        proj = sprites.createProjectileFromSprite(img`
-            . . . . . . . .
-            . . 5 5 5 5 . .
-            . . . . . . . .
-        `, protagonista, 150, 0)
-        music.pewPew.play()
-    }
-    
-})
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function enemigo_derrotado(p: Sprite, e: Sprite) {
+    //  Destruimos la bala y el enemigo inmediatamente
     p.destroy()
     e.destroy(effects.disintegrate, 200)
+    //  Solo restamos de vivos si el enemigo aún no había sido contado
     juego.vivos -= 1
     juego.oro += 10
-    info.setScore(juego.oro)
-    if (juego.vivos <= 0) {
-        abrir_tienda()
-    }
-    
-})
-sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function dano_jugador(p: Sprite, e: Sprite) {
-    if (juego.invulnerable) {
-        return
-    }
-    
-    e.destroy()
-    juego.vivos -= 1
-    if (juego.tiene_escudo && barra_escudo.value > 0) {
-        barra_escudo.value -= 1
-        music.baDing.play()
-        //  Invulnerabilidad mediante parpadeo (sin usar GHOST_THROUGH_ENEMIES)
-        juego.invulnerable = true
-        //  El efecto de parpadeo visual ayuda a la durabilidad
-        protagonista.setStayInScreen(true)
+    juego.puntos += 100
+    info.setScore(juego.puntos)
+    //  Verificación estricta: si ya no quedan vivos, saltar a tienda
+    if (juego.vivos <= 0 && info.life() > 0) {
         pause(500)
-        juego.invulnerable = false
-        if (barra_escudo.value <= 0) {
-            juego.tiene_escudo = false
-            barra_escudo.setFlag(SpriteFlag.Invisible, true)
-        }
-        
-    } else {
-        info.changeLifeBy(-1)
-        scene.cameraShake(4, 500)
-    }
-    
-    if (juego.vivos <= 0) {
+        //  Pequeño delay para que se vea la muerte del último
         abrir_tienda()
     }
     
 })
-//  Sustitución de lambda por función normal
-info.onLifeZero(function finalizar_partida() {
-    gestionar_records(juego.oro)
+info.onLifeZero(function al_morir() {
+    gestionar_records(juego.puntos)
     game.over(false)
 })
 function menu_principal() {
@@ -211,8 +268,7 @@ function menu_principal() {
     if (story.checkLastAnswer("JUGAR")) {
         info.setLife(3)
         info.setScore(0)
-        juego.ronda = 1
-        juego.oro = 0
+        juego.reiniciar()
         controller.moveSprite(protagonista, juego.velocidad, juego.velocidad)
         iniciar_noche(1)
     } else {

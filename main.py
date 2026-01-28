@@ -1,13 +1,17 @@
 # ==============================================================================
-# PROYECTO: LA CABAÑA - NOCHE ETERNA (VERSIÓN 100% COMPATIBLE)
+# PROYECTO: LA CABAÑA - NOCHE ETERNA (VERSIÓN FINAL CORREGIDA)
 # ==============================================================================
 
 class GameData:
     def __init__(self):
+        self.reiniciar()
+
+    def reiniciar(self):
         self.ronda = 1
         self.oro = 0
+        self.puntos = 0
         self.vivos = 0
-        self.velocidad = 100
+        self.velocidad = 70
         self.tiene_escudo = False
         self.invulnerable = False
         self.lore = [
@@ -21,41 +25,35 @@ class GameData:
 
 juego = GameData()
 
-# --- FUNCIONES DE PERSISTENCIA ---
-def gestionar_records(puntuacion_final: number):
-    tops = settings.read_number_array("tops_v4")
+# --- PERSISTENCIA (RECORDS) ---
+def gestionar_records(puntos_finales: number):
+    tops = settings.read_number_array("records_vfinal")
     if not tops:
         tops = []
-    
-    tops.push(puntuacion_final)
-    
+    tops.push(puntos_finales)
     for i in range(len(tops)):
         for j in range(len(tops) - 1):
             if tops[j] < tops[j+1]:
                 temp = tops[j]
                 tops[j] = tops[j+1]
                 tops[j+1] = temp
-    
     if len(tops) > 3:
         tops.remove_at(3)
-    
-    settings.write_number_array("tops_v4", tops)
+    settings.write_number_array("records_vfinal", tops)
 
 def mostrar_menu_records():
     scene.set_background_color(15)
-    tops = settings.read_number_array("tops_v4")
-    
-    msg = "--- MEJORES PARTIDAS ---\n"
+    tops = settings.read_number_array("records_vfinal")
+    msg = "TOP CAZADORES\n==============\n"
     if tops and len(tops) > 0:
         for i in range(len(tops)):
-            msg += str(i+1) + ". " + str(tops[i]) + " Oro\n"
+            msg += str(i+1) + ". " + str(tops[i]) + " PTS\n\n"
     else:
-        msg += "Sin registros todavia."
-    
+        msg += "\nSin registros todavia."
     game.show_long_text(msg, DialogLayout.CENTER)
     menu_principal()
 
-# --- JUGABILIDAD ---
+# --- SPRITES ---
 protagonista = sprites.create(img("""
     . . . . . . . . . . . . . . . .
     . . . . 2 2 2 2 2 . . . . . . .
@@ -74,18 +72,111 @@ barra_escudo = statusbars.create(20, 4, StatusBarKind.energy)
 barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
 barra_escudo.set_color(9, 2)
 
+# --- DISPARO ---
+def disparar():
+    if not (protagonista.flags & SpriteFlag.INVISIBLE):
+        vx = controller.dx() * 80
+        vy = controller.dy() * 80
+        if vx == 0 and vy == 0:
+            vx = 80
+            vy = 0
+        bala = sprites.create_projectile_from_sprite(img("""
+            . . 5 . .
+            . 5 4 5 .
+            5 4 4 4 5
+            . 5 4 5 .
+            . . 5 . .
+        """), protagonista, vx, vy)
+        music.pew_pew.play()
+
+controller.A.on_event(ControllerButtonEvent.PRESSED, disparar)
+
+# --- TIENDA ---
+def abrir_tienda():
+    if info.life() <= 0:
+        return
+    
+    # Limpiamos proyectiles sueltos para evitar ruidos
+    for b in sprites.all_of_kind(SpriteKind.projectile):
+        b.destroy()
+
+    scene.set_background_color(15)
+    while True:
+        game.show_long_text("ORO: " + str(juego.oro), DialogLayout.BOTTOM)
+        story.show_player_choices("Medikit (15g)", "Escudo (30g)", "Botas (20g)", "Siguiente Noche")
+        if story.check_last_answer("Siguiente Noche"):
+            break
+        elif story.check_last_answer("Medikit (15g)"):
+            if juego.oro >= 15:
+                if info.life() < 3:
+                    juego.oro -= 15
+                    info.change_life_by(1)
+                    music.power_up.play()
+                else:
+                    game.show_long_text("Vida al maximo", DialogLayout.BOTTOM)
+            else:
+                game.show_long_text("Oro insuficiente", DialogLayout.BOTTOM)
+        elif story.check_last_answer("Escudo (30g)"):
+            if juego.oro >= 30:
+                juego.oro -= 30
+                juego.tiene_escudo = True
+                barra_escudo.value = 3
+                barra_escudo.max = 3
+                barra_escudo.attach_to_sprite(protagonista, -4, 0)
+                barra_escudo.set_flag(SpriteFlag.INVISIBLE, False)
+            else:
+                game.show_long_text("Oro insuficiente", DialogLayout.BOTTOM)
+        elif story.check_last_answer("Botas (20g)"):
+            if juego.oro >= 20:
+                juego.oro -= 20
+                juego.velocidad = 150
+            else:
+                game.show_long_text("Oro insuficiente", DialogLayout.BOTTOM)
+            
+    info.set_score(juego.puntos)
+    controller.move_sprite(protagonista, juego.velocidad, juego.velocidad)
+    juego.ronda += 1
+    if juego.ronda <= 5:
+        iniciar_noche(juego.ronda)
+    else:
+        gestionar_records(juego.puntos)
+        game.over(True)
+
+# --- LÓGICA DE COMBATE ---
+def dano_jugador(p, e):
+    if juego.invulnerable:
+        return
+    e.destroy()
+    juego.vivos -= 1
+    if juego.tiene_escudo and barra_escudo.value > 0:
+        barra_escudo.value -= 1
+        music.ba_ding.play()
+        juego.invulnerable = True
+        pause(500)
+        juego.invulnerable = False
+        if barra_escudo.value <= 0:
+            juego.tiene_escudo = False
+            barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
+    else:
+        info.change_life_by(-1)
+        scene.camera_shake(4, 500)
+    
+    # Comprobación de fin de noche tras daño
+    if info.life() > 0 and juego.vivos <= 0:
+        pause(500) # Pausa para que el jugador respire
+        abrir_tienda()
+
+sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, dano_jugador)
+
 def iniciar_noche(n: number):
     scene.set_background_color(15)
     protagonista.set_flag(SpriteFlag.INVISIBLE, True)
-    
     indice = n - 1
     if indice < len(juego.lore):
         game.show_long_text(juego.lore[indice], DialogLayout.CENTER)
-    
     tiles.set_current_tilemap(assets.tilemap("""mapa"""))
     scene.camera_follow_sprite(protagonista)
     protagonista.set_flag(SpriteFlag.INVISIBLE, False)
-    
     juego.vivos = juego.dificultad[n-1]
     for i in range(juego.vivos):
         crear_enemigo()
@@ -99,104 +190,37 @@ def crear_enemigo():
     tiles.place_on_tile(enemigo, tiles.get_tile_location(randint(1, 20), randint(1, 20)))
     enemigo.follow(protagonista, 30 + (juego.ronda * 5))
 
-def abrir_tienda():
-    scene.set_background_color(15)
-    while True:
-        game.show_long_text("MERCADER - ORO: " + str(juego.oro), DialogLayout.BOTTOM)
-        story.show_player_choices("Escudo (30g)", "Botas (20g)", "Continuar")
-        
-        if story.check_last_answer("Continuar"):
-            break
-        elif story.check_last_answer("Escudo (30g)") and juego.oro >= 30:
-            juego.oro -= 30
-            juego.tiene_escudo = True
-            barra_escudo.value = 3
-            barra_escudo.max = 3
-            barra_escudo.attach_to_sprite(protagonista, -4, 0)
-            barra_escudo.set_flag(SpriteFlag.INVISIBLE, False)
-        elif story.check_last_answer("Botas (20g)") and juego.oro >= 20:
-            juego.oro -= 20
-            juego.velocidad = 150
-            
-    info.set_score(juego.oro)
-    controller.move_sprite(protagonista, juego.velocidad, juego.velocidad)
-    juego.ronda += 1
-    if juego.ronda <= 5:
-        iniciar_noche(juego.ronda)
-    else:
-        gestionar_records(juego.oro)
-        game.over(True)
-
-# --- SOLUCIÓN A LOS ERRORES DE SPRITEFLAG Y LAMBDA ---
-def disparar():
-    if not (protagonista.flags & SpriteFlag.INVISIBLE):
-        proj = sprites.create_projectile_from_sprite(img("""
-            . . . . . . . .
-            . . 5 5 5 5 . .
-            . . . . . . . .
-        """), protagonista, 150, 0)
-        music.pew_pew.play()
-
-# Sustitución de lambda por función normal
-controller.A.on_event(ControllerButtonEvent.PRESSED, disparar)
-
 def enemigo_derrotado(p, e):
+    # Destruimos la bala y el enemigo inmediatamente
     p.destroy()
     e.destroy(effects.disintegrate, 200)
+    # Solo restamos de vivos si el enemigo aún no había sido contado
     juego.vivos -= 1
     juego.oro += 10
-    info.set_score(juego.oro)
-    if juego.vivos <= 0:
+    juego.puntos += 100
+    info.set_score(juego.puntos)
+    
+    # Verificación estricta: si ya no quedan vivos, saltar a tienda
+    if juego.vivos <= 0 and info.life() > 0:
+        pause(500) # Pequeño delay para que se vea la muerte del último
         abrir_tienda()
 
 sprites.on_overlap(SpriteKind.projectile, SpriteKind.enemy, enemigo_derrotado)
 
-def dano_jugador(p, e):
-    if juego.invulnerable:
-        return
-
-    e.destroy()
-    juego.vivos -= 1
-    
-    if juego.tiene_escudo and barra_escudo.value > 0:
-        barra_escudo.value -= 1
-        music.ba_ding.play()
-        # Invulnerabilidad mediante parpadeo (sin usar GHOST_THROUGH_ENEMIES)
-        juego.invulnerable = True
-        # El efecto de parpadeo visual ayuda a la durabilidad
-        protagonista.set_stay_in_screen(True)
-        pause(500)
-        juego.invulnerable = False
-        
-        if barra_escudo.value <= 0:
-            juego.tiene_escudo = False
-            barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
-    else:
-        info.change_life_by(-1)
-        scene.camera_shake(4, 500)
-    
-    if juego.vivos <= 0:
-        abrir_tienda()
-
-sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, dano_jugador)
-
-def finalizar_partida():
-    gestionar_records(juego.oro)
+def al_morir():
+    gestionar_records(juego.puntos)
     game.over(False)
 
-# Sustitución de lambda por función normal
-info.on_life_zero(finalizar_partida)
+info.on_life_zero(al_morir)
 
 def menu_principal():
     scene.set_background_color(15)
     game.splash("LA CABANA", "NOCHE ETERNA")
     story.show_player_choices("JUGAR", "RECORDS")
-    
     if story.check_last_answer("JUGAR"):
         info.set_life(3)
         info.set_score(0)
-        juego.ronda = 1
-        juego.oro = 0
+        juego.reiniciar()
         controller.move_sprite(protagonista, juego.velocidad, juego.velocidad)
         iniciar_noche(1)
     else:
