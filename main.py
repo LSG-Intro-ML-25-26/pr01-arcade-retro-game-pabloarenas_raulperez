@@ -1,6 +1,8 @@
 # ==============================================================================
-# PROYECTO: EL BOSQUE SUSURRANTE - FANTASMAS ANIMADOS
+# PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL COMPATIBLE
 # ==============================================================================
+
+KIND_BOSS = SpriteKind.create()
 
 class GameData:
     def __init__(self):
@@ -16,72 +18,79 @@ class GameData:
         self.invulnerable = False
         self.en_tienda = False
         self.juego_activo = False
+        self.boss_creado = False
+        self.animacion_actual = ""
         self.lore = [
-            "NOCHE 1: Mi avioneta cayo en este infierno verde. Solo tengo mi revolver y la esperanza de que vean la señal de humo. Algo se mueve...",
-            "NOCHE 2: El rescate no llega. El frio cala mis huesos y los aullidos son cada vez mas humanos. Si muero aqui, nadie me encontrara.",
-            "NOCHE 3: Es la ultima radiofrecuencia. El helicoptero llegara al amanecer, pero el bosque entero ha despertado. ¡Resiste!"
+            "NOCHE 1: Mi avioneta cayo...",
+            "NOCHE 2: El frio cala mis huesos...",
+            "NOCHE 3: El helicoptero llegara al amanecer. ¡Resiste!"
         ]
 
 juego = GameData()
 
-# --- HISTORIAL DE PARTIDAS ---
-def gestionar_records(puntos_finales: number):
-    historial = settings.read_number_array("hist_v3")
-    if not historial:
-        historial = []
-    historial.insert_at(0, puntos_finales)
-    if len(historial) > 3:
-        historial.remove_at(3)
-    settings.write_number_array("hist_v3", historial)
-
-def mostrar_menu_records():
-    scene.set_background_color(15)
-    partidas = settings.read_number_array("hist_v3")
-    msg = "ULTIMAS PARTIDAS\n==============\n"
-    if partidas and len(partidas) > 0:
-        for i in range(len(partidas)):
-            label = " (NUEVA)" if i == 0 else ""
-            msg += str(i+1) + ". " + str(partidas[i]) + " PTS" + label + "\n\n"
-    else:
-        msg += "\nNo hay partidas registradas."
-    game.show_long_text(msg, DialogLayout.CENTER)
-    menu_principal()
-
-# --- JUGADOR ---
-protagonista = sprites.create(img("""
-    . . . . . . . . . . . . . . . .
-    . . . . 2 2 2 2 2 . . . . . . .
-    . . . 2 2 2 2 2 2 2 . . . . . .
-    . . . 2 f f f f f 2 . . . . . .
-    . . . 2 f 1 f 1 f 2 . . . . . .
-    . . . . f 1 1 1 f . . . . . . .
-    . . . . f 1 f 1 f . . . . . . .
-    . . . . 8 8 8 8 8 . . . . . . .
-    . . . . 8 8 8 8 8 . . . . . . .
-    . . . . 8 . . . 8 . . . . . . .
-"""), SpriteKind.player)
+# --- JUGADOR Y BARRA AMARILLA ---
+protagonista = sprites.create(assets.image("""player-standing"""), SpriteKind.player)
 protagonista.set_flag(SpriteFlag.INVISIBLE, True)
 
-barra_escudo = statusbars.create(20, 4, StatusBarKind.energy)
-barra_escudo.set_color(9, 1)
+barra_escudo = statusbars.create(20, 4, StatusBarKind.magic)
+barra_escudo.set_color(5, 1)
 barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
+
+# --- SISTEMA DE ANIMACIÓN Y BARRA (CORRECCIÓN LAMBDA) ---
+def controlar_animaciones_jugador():
+    if not juego.juego_activo or juego.en_tienda: return
+    if protagonista.vx > 0:
+        if juego.animacion_actual != "der":
+            juego.animacion_actual = "der"
+            animation.run_image_animation(protagonista, assets.animation("""player-moving-right"""), 100, True)
+    elif protagonista.vx < 0:
+        if juego.animacion_actual != "izq":
+            juego.animacion_actual = "izq"
+            animation.run_image_animation(protagonista, assets.animation("""player-moving-left"""), 100, True)
+    elif protagonista.vy > 0:
+        if juego.animacion_actual != "aba":
+            juego.animacion_actual = "aba"
+            animation.run_image_animation(protagonista, assets.animation("""player-moving-down"""), 100, True)
+    elif protagonista.vy < 0:
+        if juego.animacion_actual != "arr":
+            juego.animacion_actual = "arr"
+            animation.run_image_animation(protagonista, assets.animation("""player-moving-up"""), 100, True)
+    else:
+        if juego.animacion_actual != "parado":
+            juego.animacion_actual = "parado"
+            animation.stop_animation(animation.AnimationTypes.ALL, protagonista)
+            protagonista.set_image(assets.image("""player-standing"""))
+
+def actualizar_interfaz():
+    if juego.juego_activo and juego.tiene_escudo:
+        barra_escudo.set_flag(SpriteFlag.INVISIBLE, False)
+        barra_escudo.attach_to_sprite(protagonista, 2, 0)
+    else:
+        barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
+
+def on_update_juego():
+    controlar_animaciones_jugador()
+    actualizar_interfaz()
+
+game.on_update(on_update_juego)
 
 # --- TIENDA ---
 def abrir_tienda():
     juego.juego_activo = False
     juego.en_tienda = True
     for e in sprites.all_of_kind(SpriteKind.enemy): e.destroy()
+    for b in sprites.all_of_kind(KIND_BOSS): b.destroy()
     protagonista.set_flag(SpriteFlag.INVISIBLE, True)
-    scene.set_background_color(15)
-    game.show_long_text("EL AMANECER TE DA UN RESPIRO\nORO: " + str(juego.oro), DialogLayout.BOTTOM)
+    barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
     
+    game.show_long_text("ORO: " + str(juego.oro), DialogLayout.BOTTOM)
     story.show_player_choices("Curar (15g)", "Botas (20g)", "Escudo (30g)", "SIGUIENTE NOCHE")
     
     if story.check_last_answer("SIGUIENTE NOCHE"):
         juego.ronda += 1
         iniciar_noche(juego.ronda)
     elif story.check_last_answer("Curar (15g)"):
-        if juego.oro >= 15 and info.life() < 3:
+        if juego.oro >= 15:
             juego.oro -= 15
             info.change_life_by(1)
         abrir_tienda()
@@ -96,72 +105,83 @@ def abrir_tienda():
             juego.tiene_escudo = True
             barra_escudo.max = 3
             barra_escudo.value = 3
-            barra_escudo.attach_to_sprite(protagonista, -4, 0)
-            barra_escudo.set_flag(SpriteFlag.INVISIBLE, False)
         abrir_tienda()
 
-# --- LÓGICA DE NOCHE ---
+# --- DAÑO CON MENSAJE ---
+def procesar_daño(p, e):
+    if juego.invulnerable: return
+    if e.kind() == SpriteKind.enemy: e.destroy()
+    
+    if juego.tiene_escudo and barra_escudo.value > 0:
+        barra_escudo.value -= 1
+        if barra_escudo.value <= 0:
+            juego.tiene_escudo = False
+            barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
+            protagonista.say_text("¡ESCUDO ROTO!", 1000)
+            music.big_crash.play()
+    else:
+        info.change_life_by(-1)
+    
+    juego.invulnerable = True
+    pause(1000)
+    juego.invulnerable = False
+
+# --- SPAWN Y BOSS ---
+def crear_boss():
+    juego.boss_creado = True
+    boss = sprites.create(assets.image("""fantasma"""), KIND_BOSS)
+    boss.set_scale(3, ScaleAnchor.MIDDLE)
+    boss.set_position(protagonista.x + 100, protagonista.y)
+    boss.follow(protagonista, 25)
+    hp = statusbars.create(40, 4, StatusBarKind.health)
+    hp.attach_to_sprite(boss, 5)
+    hp.max = 20
+    hp.value = 20
+
+def spawn_seguro():
+    if not juego.juego_activo or juego.en_tienda: return
+    if juego.ronda == 3 and juego.monstruos_restantes <= 5 and not juego.boss_creado:
+        crear_boss()
+        return
+    if len(sprites.all_of_kind(SpriteKind.enemy)) < 6:
+        en = sprites.create(assets.image("""fantasma"""), SpriteKind.enemy)
+        if Math.percent_chance(50):
+            en.x = protagonista.x + Math.pick_random([80, -80])
+            en.y = protagonista.y + randint(-60, 60)
+        else:
+            en.x = protagonista.x + randint(-80, 80)
+            en.y = protagonista.y + Math.pick_random([60, -60])
+        en.follow(protagonista, 35 + (juego.ronda * 5))
+
+game.on_update_interval(2500, spawn_seguro)
+
+# --- COMBATE Y PROYECTILES ---
 def iniciar_noche(n: number):
     juego.en_tienda = False
-    scene.set_background_color(15)
+    juego.boss_creado = False
     game.show_long_text(juego.lore[n-1], DialogLayout.CENTER)
     tiles.set_current_tilemap(assets.tilemap("""mapa"""))
     scene.camera_follow_sprite(protagonista)
     protagonista.set_flag(SpriteFlag.INVISIBLE, False)
     controller.move_sprite(protagonista, juego.velocidad, juego.velocidad)
-    if n == 1: juego.monstruos_restantes = 10
-    elif n == 2: juego.monstruos_restantes = 15
-    else: juego.monstruos_restantes = 20
+    juego.monstruos_restantes = 10 + (n-1) * 5
     juego.juego_activo = True
 
-def crear_enemigo():
-    if juego.juego_activo and not juego.en_tienda:
-        if len(sprites.all_of_kind(SpriteKind.enemy)) < 6:
-            enemigo = sprites.create(assets.image("""fantasma"""), SpriteKind.enemy)
-            enemigo.x = 250 + randint(-60, 60)
-            enemigo.y = 250 + randint(-60, 60)
-            enemigo.follow(protagonista, 35 + (juego.ronda * 5))
-
-game.on_update_interval(2500, crear_enemigo)
-
-# --- ACTUALIZAR DISEÑO DE FANTASMAS (NUEVO) ---
-def actualizar_fantasmas():
-    for f in sprites.all_of_kind(SpriteKind.enemy):
-        if f.vx > 0:
-            f.set_image(assets.image("""fantasma_derecha"""))
-        elif f.vx < 0:
-            f.set_image(assets.image("""fantasma_izquierda"""))
-        else:
-            f.set_image(assets.image("""fantasma"""))
-
-game.on_update(actualizar_fantasmas)
-
-# --- COMBATE ---
 def disparar():
-    if juego.juego_activo:
-        vx = controller.dx() * 110
-        vy = controller.dy() * 110
-        if vx == 0 and vy == 0: vx = 110
-        sprites.create_projectile_from_sprite(img("""
-            . . 5 . .
-            . 5 4 5 .
-            5 4 4 4 5
-            . 5 4 5 .
-            . . 5 . .
-        """), protagonista, vx, vy)
-        music.pew_pew.play()
+    if not juego.juego_activo: return
+    vx = controller.dx() * 110
+    vy = controller.dy() * 110
+    if vx == 0 and vy == 0: vx = 110
+    sprites.create_projectile_from_sprite(img("""
+        . . 5 . .
+        . 5 4 5 .
+        5 4 4 4 5
+        . 5 4 5 .
+        . . 5 . .
+    """), protagonista, vx, vy)
+    music.pew_pew.play()
 
 controller.A.on_event(ControllerButtonEvent.PRESSED, disparar)
-
-# --- FINAL ---
-def victoria_final():
-    juego.juego_activo = False
-    for e in sprites.all_of_kind(SpriteKind.enemy): e.destroy()
-    scene.set_background_color(15)
-    pause(500)
-    game.show_long_text("El rescate ha llegado.", DialogLayout.CENTER)
-    gestionar_records(juego.puntos)
-    game.over(True)
 
 def baja_enemigo(bala, monstruo):
     bala.destroy()
@@ -172,31 +192,73 @@ def baja_enemigo(bala, monstruo):
     info.set_score(juego.puntos)
     if juego.monstruos_restantes <= 0:
         if juego.ronda < 3: abrir_tienda()
-        else: victoria_final()
+        else:
+            gestionar_records(juego.puntos)
+            game.over(True)
+
+def daño_boss(bala, boss):
+    bala.destroy()
+    hp = statusbars.get_status_bar_attached_to(StatusBarKind.health, boss)
+    if hp:
+        hp.value -= 1
+        if hp.value <= 0:
+            boss.destroy(effects.fire, 500)
+            juego.monstruos_restantes = 0
+            gestionar_records(juego.puntos)
+            game.over(True)
 
 sprites.on_overlap(SpriteKind.projectile, SpriteKind.enemy, baja_enemigo)
+sprites.on_overlap(SpriteKind.projectile, KIND_BOSS, daño_boss)
+sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, procesar_daño)
+sprites.on_overlap(SpriteKind.player, KIND_BOSS, procesar_daño)
 
-def daño_jugador(p, e):
-    if juego.invulnerable: return
-    e.destroy()
-    if juego.tiene_escudo and barra_escudo.value > 0:
-        barra_escudo.value -= 1
-        if barra_escudo.value <= 0:
-            juego.tiene_escudo = False
-            barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
-            protagonista.say("¡Escudo roto!", 1000)
-    else: info.change_life_by(-1)
-    juego.invulnerable = True
-    pause(1000)
-    juego.invulnerable = False
+# --- SISTEMA DE RECORDS (CORRECCIÓN LISTAS) ---
+def gestionar_records(p: number):
+    h = settings.read_number_array("hist_v3")
+    if h == None:
+        h = [0, 0, 0]
+        h.remove_at(0)
+        h.remove_at(0)
+        h.remove_at(0)
+    
+    h.insert_at(0, p)
+    if len(h) > 3:
+        h.remove_at(3)
+    settings.write_number_array("hist_v3", h)
 
-sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, daño_jugador)
-
-def finalizar_por_muerte():
+def al_morir():
     gestionar_records(juego.puntos)
     game.over(False)
 
-info.on_life_zero(finalizar_por_muerte)
+info.on_life_zero(al_morir)
+
+def mostrar_menu_records():
+    scene.set_background_color(15)
+    # Forzamos a que lea la lista de números
+    partidas = settings.read_number_array("hist_v3")
+    
+    msg = "EL BOSQUE SUSURRANTE\n"
+    msg += "====================\n"
+    msg += "ULTIMAS PARTIDAS:\n\n"
+    
+    if partidas and len(partidas) > 0:
+        for i in range(len(partidas)):
+            puntos = partidas[i]
+            # Construimos la línea con espacios claros para que no se solape
+            linea = str(i + 1) + ". " + str(puntos) + " PTS"
+            
+            if i == 0:
+                linea += "  <-- NUEVA"
+            
+            msg += linea + "\n\n" # Doble salto de línea para más claridad
+    else:
+        msg += "No hay registros aun.\n"
+    
+    msg += "\n(A) PARA VOLVER"
+    
+    # El DialogLayout.FULL ocupa toda la pantalla y evita cortes raros
+    game.show_long_text(msg, DialogLayout.FULL)
+    menu_principal()
 
 def menu_principal():
     scene.set_background_color(15)
@@ -204,9 +266,10 @@ def menu_principal():
     story.show_player_choices("JUGAR", "RECORDS")
     if story.check_last_answer("JUGAR"):
         info.set_life(3)
-        info.set_score(0)
         juego.reiniciar()
         iniciar_noche(1)
-    else: mostrar_menu_records()
+    else:
+        # Aquí está la corrección: llamamos a la función con el diseño bonito
+        mostrar_menu_records()
 
 menu_principal()
