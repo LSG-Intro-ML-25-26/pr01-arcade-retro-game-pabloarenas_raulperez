@@ -1,5 +1,5 @@
 //  ==============================================================================
-//  PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL (MÁXIMA COMPATIBILIDAD)
+//  PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL ESTABLE
 //  ==============================================================================
 let KIND_BOSS = SpriteKind.create()
 let KIND_DECO = SpriteKind.create()
@@ -32,7 +32,7 @@ class GameData {
         this.juego_activo = false
         this.boss_creado = false
         this.animacion_actual = ""
-        this.lore = ["NOCHE 1: Mi avioneta cayo...", "NOCHE 2: El frio cala mis huesos...", "NOCHE 3: El helicoptero llegara al amanecer. ¡Resiste!"]
+        this.lore = ["NOCHE 1: Mi avioneta cayo...", "NOCHE 2: El frio cala mis huesos...", "NOCHE 3: El Espiritu del Bosque despierta. ¡Matalo para escapar!"]
     }
     
 }
@@ -179,6 +179,7 @@ function crear_boss() {
     hp.attachToSprite(boss, 5)
     hp.max = 20
     hp.value = 20
+    boss.sayText("¡NUNCA SALDRAS!", 2000)
 }
 
 game.onUpdateInterval(2500, function spawn_seguro() {
@@ -206,20 +207,15 @@ game.onUpdateInterval(2500, function spawn_seguro() {
     }
     
 })
-//  --- DECORACIÓN: BOSQUE TOTAL ---
+//  --- DECORACIÓN ---
 function colocar_arboles_aleatorios() {
     let arbol: Sprite;
     let tipos_arboles = [assets.image`arbol1`, assets.image`arbol2`]
-    //  Valores fijos que funcionan en mapas grandes
-    let ancho_total = 400
-    let alto_total = 400
-    for (let dibujo_arbol of tipos_arboles) {
+    for (let dibujo of tipos_arboles) {
         for (let i = 0; i < 12; i++) {
-            //  24 árboles en total
-            arbol = sprites.create(dibujo_arbol, KIND_DECO)
-            arbol.x = randint(10, ancho_total)
-            arbol.y = randint(10, alto_total)
-            //  Evitar zona de spawn inicial (80, 60)
+            arbol = sprites.create(dibujo, KIND_DECO)
+            arbol.x = randint(10, 400)
+            arbol.y = randint(10, 400)
             if (Math.abs(arbol.x - 80) < 40 && Math.abs(arbol.y - 60) < 40) {
                 arbol.x += 60
             }
@@ -229,12 +225,12 @@ function colocar_arboles_aleatorios() {
     }
 }
 
-//  --- LÓGICA DE NOCHE ---
+//  --- NOCHE ---
 function iniciar_noche(n: number) {
     juego.en_tienda = false
     juego.boss_creado = false
-    for (let decoracion of sprites.allOfKind(KIND_DECO)) {
-        decoracion.destroy()
+    for (let d of sprites.allOfKind(KIND_DECO)) {
+        d.destroy()
     }
     game.showLongText(juego.lore[n - 1], DialogLayout.Center)
     tiles.setCurrentTilemap(assets.tilemap`mapa`)
@@ -275,26 +271,22 @@ sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function baja_enemigo
     juego.oro += 10
     juego.puntos += 100
     juego.monstruos_restantes -= 1
-    info.setScore(juego.puntos)
-    if (juego.monstruos_restantes <= 0) {
-        if (juego.ronda < 3) {
-            abrir_tienda()
-        } else {
-            gestionar_records(juego.puntos)
-            game.over(true)
-        }
-        
+    if (juego.ronda < 3 && juego.monstruos_restantes <= 0) {
+        abrir_tienda()
     }
     
+    info.setScore(juego.puntos)
 })
 sprites.onOverlap(SpriteKind.Projectile, KIND_BOSS, function daño_boss(bala: Sprite, boss: Sprite) {
     bala.destroy()
     let hp = statusbars.getStatusBarAttachedTo(StatusBarKind.Health, boss)
     if (hp) {
         hp.value -= 1
+        boss.sayText("¡ARRG!", 500)
         if (hp.value <= 0) {
-            boss.destroy(effects.fire, 500)
-            juego.monstruos_restantes = 0
+            boss.destroy(effects.fire, 800)
+            juego.juego_activo = false
+            pause(1000)
             gestionar_records(juego.puntos)
             game.over(true)
         }
@@ -304,14 +296,11 @@ sprites.onOverlap(SpriteKind.Projectile, KIND_BOSS, function daño_boss(bala: Sp
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, procesar_daño)
 sprites.onOverlap(SpriteKind.Player, KIND_BOSS, procesar_daño)
-//  --- RECORDS ---
+//  --- RECORDS (VERSION LIMPIA SIN SOLAPAMIENTO) ---
 function gestionar_records(p: number) {
     let h = settings.readNumberArray("hist_v3")
     if (h == null) {
-        h = [0, 0, 0]
-        h.removeAt(0)
-        h.removeAt(0)
-        h.removeAt(0)
+        h = []
     }
     
     h.insertAt(0, p)
@@ -327,36 +316,35 @@ function mostrar_menu_records() {
     let linea: any;
     scene.setBackgroundColor(15)
     let partidas = settings.readNumberArray("hist_v3")
-    let msg = `EL BOSQUE SUSURRANTE
-`
-    msg += `====================
-`
-    msg += "ULTIMAS PARTIDAS:\n\n"
+    //  Construimos todo el mensaje en una sola variable para evitar solapamientos
+    let msg = "ULTIMOS RECORDS\n"
+    msg += "===============\n"
     if (partidas && partidas.length > 0) {
         for (let i = 0; i < partidas.length; i++) {
             puntos = partidas[i]
+            //  Formato: 1. 1500 PTS
             linea = "" + (i + 1) + ". " + ("" + puntos) + " PTS"
             if (i == 0) {
-                linea += "  <-- NUEVA"
+                linea += " (NUEVA)"
             }
             
             msg += linea + "\n\n"
         }
     } else {
-        msg += `No hay registros aun.
-`
+        msg += "Sin registros aun.\n"
     }
     
-    msg += "\n(A) PARA VOLVER"
+    msg += "\n(A) VOLVER"
+    //  Usamos FULL layout para que el texto tenga su propio espacio limpio
     game.showLongText(msg, DialogLayout.Full)
     menu_principal()
 }
 
+//  --- REEMPLAZO DE LAMBDA ---
 info.onLifeZero(function al_morir() {
     gestionar_records(juego.puntos)
     game.over(false)
 })
-//  --- MENÚ PRINCIPAL ---
 function menu_principal() {
     scene.setBackgroundColor(15)
     game.splash("EL BOSQUE", "SUSURRANTE")
