@@ -39,7 +39,8 @@ Es el personaje controlado por el jugador. Cuenta con un sistema de **animacione
 * **Asset principal:** `player-standing.png`
 * **Habilidades:** Disparo, movimiento veloz y uso de escudos.
 
-![Imagen del Piloto](./assets/player-standing.png)
+![Imagen del Piloto]<img width="751" height="751" alt="image" src="https://github.com/user-attachments/assets/05e0f5dd-3320-45dc-a66f-e6ada13bcb67" />
+
 
 ### 👻 Los Espectros (Enemigos)
 Son las almas en pena que habitan el bosque. Tienen la capacidad de **atravesar los muros** y persiguen al jugador implacablemente.
