@@ -1,7 +1,8 @@
 //  ==============================================================================
-//  PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL COMPATIBLE
+//  PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL (MÁXIMA COMPATIBILIDAD)
 //  ==============================================================================
 let KIND_BOSS = SpriteKind.create()
+let KIND_DECO = SpriteKind.create()
 class GameData {
     ronda: number
     oro: number
@@ -43,7 +44,7 @@ protagonista.setFlag(SpriteFlag.Invisible, true)
 let barra_escudo = statusbars.create(20, 4, StatusBarKind.Magic)
 barra_escudo.setColor(5, 1)
 barra_escudo.setFlag(SpriteFlag.Invisible, true)
-//  --- SISTEMA DE ANIMACIÓN Y BARRA (CORRECCIÓN LAMBDA) ---
+//  --- SISTEMA DE ANIMACIÓN Y BARRA ---
 function controlar_animaciones_jugador() {
     if (!juego.juego_activo || juego.en_tienda) {
         return
@@ -139,7 +140,7 @@ function abrir_tienda() {
     
 }
 
-//  --- DAÑO CON MENSAJE ---
+//  --- DAÑO ---
 function procesar_daño(p: Sprite, e: Sprite) {
     if (juego.invulnerable) {
         return
@@ -205,19 +206,48 @@ game.onUpdateInterval(2500, function spawn_seguro() {
     }
     
 })
-//  --- COMBATE Y PROYECTILES ---
+//  --- DECORACIÓN: BOSQUE TOTAL ---
+function colocar_arboles_aleatorios() {
+    let arbol: Sprite;
+    let tipos_arboles = [assets.image`arbol1`, assets.image`arbol2`]
+    //  Valores fijos que funcionan en mapas grandes
+    let ancho_total = 400
+    let alto_total = 400
+    for (let dibujo_arbol of tipos_arboles) {
+        for (let i = 0; i < 12; i++) {
+            //  24 árboles en total
+            arbol = sprites.create(dibujo_arbol, KIND_DECO)
+            arbol.x = randint(10, ancho_total)
+            arbol.y = randint(10, alto_total)
+            //  Evitar zona de spawn inicial (80, 60)
+            if (Math.abs(arbol.x - 80) < 40 && Math.abs(arbol.y - 60) < 40) {
+                arbol.x += 60
+            }
+            
+            arbol.z = -1
+        }
+    }
+}
+
+//  --- LÓGICA DE NOCHE ---
 function iniciar_noche(n: number) {
     juego.en_tienda = false
     juego.boss_creado = false
+    for (let decoracion of sprites.allOfKind(KIND_DECO)) {
+        decoracion.destroy()
+    }
     game.showLongText(juego.lore[n - 1], DialogLayout.Center)
     tiles.setCurrentTilemap(assets.tilemap`mapa`)
+    colocar_arboles_aleatorios()
     scene.cameraFollowSprite(protagonista)
     protagonista.setFlag(SpriteFlag.Invisible, false)
+    protagonista.setPosition(80, 60)
     controller.moveSprite(protagonista, juego.velocidad, juego.velocidad)
     juego.monstruos_restantes = 10 + (n - 1) * 5
     juego.juego_activo = true
 }
 
+//  --- DISPARO ---
 controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
     if (!juego.juego_activo) {
         return
@@ -238,6 +268,7 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
     `, protagonista, vx, vy)
     music.pewPew.play()
 })
+//  --- COLISIONES ---
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function baja_enemigo(bala: Sprite, monstruo: Sprite) {
     bala.destroy()
     monstruo.destroy(effects.disintegrate, 200)
@@ -273,7 +304,7 @@ sprites.onOverlap(SpriteKind.Projectile, KIND_BOSS, function daño_boss(bala: Sp
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, procesar_daño)
 sprites.onOverlap(SpriteKind.Player, KIND_BOSS, procesar_daño)
-//  --- SISTEMA DE RECORDS (CORRECCIÓN LISTAS) ---
+//  --- RECORDS ---
 function gestionar_records(p: number) {
     let h = settings.readNumberArray("hist_v3")
     if (h == null) {
@@ -291,15 +322,10 @@ function gestionar_records(p: number) {
     settings.writeNumberArray("hist_v3", h)
 }
 
-info.onLifeZero(function al_morir() {
-    gestionar_records(juego.puntos)
-    game.over(false)
-})
 function mostrar_menu_records() {
     let puntos: number;
     let linea: any;
     scene.setBackgroundColor(15)
-    //  Forzamos a que lea la lista de números
     let partidas = settings.readNumberArray("hist_v3")
     let msg = `EL BOSQUE SUSURRANTE
 `
@@ -309,7 +335,6 @@ function mostrar_menu_records() {
     if (partidas && partidas.length > 0) {
         for (let i = 0; i < partidas.length; i++) {
             puntos = partidas[i]
-            //  Construimos la línea con espacios claros para que no se solape
             linea = "" + (i + 1) + ". " + ("" + puntos) + " PTS"
             if (i == 0) {
                 linea += "  <-- NUEVA"
@@ -318,17 +343,20 @@ function mostrar_menu_records() {
             msg += linea + "\n\n"
         }
     } else {
-        //  Doble salto de línea para más claridad
         msg += `No hay registros aun.
 `
     }
     
     msg += "\n(A) PARA VOLVER"
-    //  El DialogLayout.FULL ocupa toda la pantalla y evita cortes raros
     game.showLongText(msg, DialogLayout.Full)
     menu_principal()
 }
 
+info.onLifeZero(function al_morir() {
+    gestionar_records(juego.puntos)
+    game.over(false)
+})
+//  --- MENÚ PRINCIPAL ---
 function menu_principal() {
     scene.setBackgroundColor(15)
     game.splash("EL BOSQUE", "SUSURRANTE")
@@ -338,7 +366,6 @@ function menu_principal() {
         juego.reiniciar()
         iniciar_noche(1)
     } else {
-        //  Aquí está la corrección: llamamos a la función con el diseño bonito
         mostrar_menu_records()
     }
     

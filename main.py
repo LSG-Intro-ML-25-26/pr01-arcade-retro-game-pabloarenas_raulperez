@@ -1,8 +1,9 @@
 # ==============================================================================
-# PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL COMPATIBLE
+# PROYECTO: EL BOSQUE SUSURRANTE - VERSIÓN FINAL (MÁXIMA COMPATIBILIDAD)
 # ==============================================================================
 
 KIND_BOSS = SpriteKind.create()
+KIND_DECO = SpriteKind.create()
 
 class GameData:
     def __init__(self):
@@ -36,7 +37,7 @@ barra_escudo = statusbars.create(20, 4, StatusBarKind.magic)
 barra_escudo.set_color(5, 1)
 barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
 
-# --- SISTEMA DE ANIMACIÓN Y BARRA (CORRECCIÓN LAMBDA) ---
+# --- SISTEMA DE ANIMACIÓN Y BARRA ---
 def controlar_animaciones_jugador():
     if not juego.juego_activo or juego.en_tienda: return
     if protagonista.vx > 0:
@@ -107,7 +108,7 @@ def abrir_tienda():
             barra_escudo.value = 3
         abrir_tienda()
 
-# --- DAÑO CON MENSAJE ---
+# --- DAÑO ---
 def procesar_daño(p, e):
     if juego.invulnerable: return
     if e.kind() == SpriteKind.enemy: e.destroy()
@@ -155,18 +156,47 @@ def spawn_seguro():
 
 game.on_update_interval(2500, spawn_seguro)
 
-# --- COMBATE Y PROYECTILES ---
+# --- DECORACIÓN: BOSQUE TOTAL ---
+def colocar_arboles_aleatorios():
+    tipos_arboles = [assets.image("""arbol1"""), assets.image("""arbol2""")]
+    
+    # Valores fijos que funcionan en mapas grandes
+    ancho_total = 400
+    alto_total = 400
+
+    for dibujo_arbol in tipos_arboles:
+        for i in range(12): # 24 árboles en total
+            arbol = sprites.create(dibujo_arbol, KIND_DECO)
+            arbol.x = randint(10, ancho_total)
+            arbol.y = randint(10, alto_total)
+            
+            # Evitar zona de spawn inicial (80, 60)
+            if abs(arbol.x - 80) < 40 and abs(arbol.y - 60) < 40:
+                arbol.x += 60
+                
+            arbol.z = -1
+
+# --- LÓGICA DE NOCHE ---
 def iniciar_noche(n: number):
     juego.en_tienda = False
     juego.boss_creado = False
+    for decoracion in sprites.all_of_kind(KIND_DECO):
+        decoracion.destroy()
+        
     game.show_long_text(juego.lore[n-1], DialogLayout.CENTER)
     tiles.set_current_tilemap(assets.tilemap("""mapa"""))
+    
+    colocar_arboles_aleatorios()
+    
     scene.camera_follow_sprite(protagonista)
     protagonista.set_flag(SpriteFlag.INVISIBLE, False)
+    protagonista.set_position(80, 60)
+    
     controller.move_sprite(protagonista, juego.velocidad, juego.velocidad)
     juego.monstruos_restantes = 10 + (n-1) * 5
     juego.juego_activo = True
 
+# --- DISPARO ---
 def disparar():
     if not juego.juego_activo: return
     vx = controller.dx() * 110
@@ -183,6 +213,7 @@ def disparar():
 
 controller.A.on_event(ControllerButtonEvent.PRESSED, disparar)
 
+# --- COLISIONES ---
 def baja_enemigo(bala, monstruo):
     bala.destroy()
     monstruo.destroy(effects.disintegrate, 200)
@@ -212,7 +243,7 @@ sprites.on_overlap(SpriteKind.projectile, KIND_BOSS, daño_boss)
 sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, procesar_daño)
 sprites.on_overlap(SpriteKind.player, KIND_BOSS, procesar_daño)
 
-# --- SISTEMA DE RECORDS (CORRECCIÓN LISTAS) ---
+# --- RECORDS ---
 def gestionar_records(p: number):
     h = settings.read_number_array("hist_v3")
     if h == None:
@@ -220,11 +251,28 @@ def gestionar_records(p: number):
         h.remove_at(0)
         h.remove_at(0)
         h.remove_at(0)
-    
     h.insert_at(0, p)
     if len(h) > 3:
         h.remove_at(3)
     settings.write_number_array("hist_v3", h)
+
+def mostrar_menu_records():
+    scene.set_background_color(15)
+    partidas = settings.read_number_array("hist_v3")
+    msg = "EL BOSQUE SUSURRANTE\n"
+    msg += "====================\n"
+    msg += "ULTIMAS PARTIDAS:\n\n"
+    if partidas and len(partidas) > 0:
+        for i in range(len(partidas)):
+            puntos = partidas[i]
+            linea = str(i + 1) + ". " + str(puntos) + " PTS"
+            if i == 0: linea += "  <-- NUEVA"
+            msg += linea + "\n\n"
+    else:
+        msg += "No hay registros aun.\n"
+    msg += "\n(A) PARA VOLVER"
+    game.show_long_text(msg, DialogLayout.FULL)
+    menu_principal()
 
 def al_morir():
     gestionar_records(juego.puntos)
@@ -232,34 +280,7 @@ def al_morir():
 
 info.on_life_zero(al_morir)
 
-def mostrar_menu_records():
-    scene.set_background_color(15)
-    # Forzamos a que lea la lista de números
-    partidas = settings.read_number_array("hist_v3")
-    
-    msg = "EL BOSQUE SUSURRANTE\n"
-    msg += "====================\n"
-    msg += "ULTIMAS PARTIDAS:\n\n"
-    
-    if partidas and len(partidas) > 0:
-        for i in range(len(partidas)):
-            puntos = partidas[i]
-            # Construimos la línea con espacios claros para que no se solape
-            linea = str(i + 1) + ". " + str(puntos) + " PTS"
-            
-            if i == 0:
-                linea += "  <-- NUEVA"
-            
-            msg += linea + "\n\n" # Doble salto de línea para más claridad
-    else:
-        msg += "No hay registros aun.\n"
-    
-    msg += "\n(A) PARA VOLVER"
-    
-    # El DialogLayout.FULL ocupa toda la pantalla y evita cortes raros
-    game.show_long_text(msg, DialogLayout.FULL)
-    menu_principal()
-
+# --- MENÚ PRINCIPAL ---
 def menu_principal():
     scene.set_background_color(15)
     game.splash("EL BOSQUE", "SUSURRANTE")
@@ -269,7 +290,6 @@ def menu_principal():
         juego.reiniciar()
         iniciar_noche(1)
     else:
-        # Aquí está la corrección: llamamos a la función con el diseño bonito
         mostrar_menu_records()
 
 menu_principal()
