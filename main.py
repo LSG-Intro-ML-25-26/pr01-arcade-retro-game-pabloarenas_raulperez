@@ -1,5 +1,5 @@
 # ==============================================================================
-# PROYECTO: EL BOSQUE SUSURRANTE - HISTORIAL CORREGIDO (FIX LINEA 35)
+# PROYECTO: EL BOSQUE SUSURRANTE - FANTASMAS ANIMADOS
 # ==============================================================================
 
 class GameData:
@@ -24,33 +24,26 @@ class GameData:
 
 juego = GameData()
 
-# --- HISTORIAL DE PARTIDAS (CORREGIDO PARA MAKECODE) ---
+# --- HISTORIAL DE PARTIDAS ---
 def gestionar_records(puntos_finales: number):
     historial = settings.read_number_array("hist_v3")
     if not historial:
         historial = []
-    
-    # En MakeCode Arcade se usa insert_at(indice, valor)
     historial.insert_at(0, puntos_finales)
-    
-    # Y remove_at(indice) para mantener solo 3
     if len(historial) > 3:
         historial.remove_at(3)
-    
     settings.write_number_array("hist_v3", historial)
 
 def mostrar_menu_records():
     scene.set_background_color(15)
     partidas = settings.read_number_array("hist_v3")
     msg = "ULTIMAS PARTIDAS\n==============\n"
-    
     if partidas and len(partidas) > 0:
         for i in range(len(partidas)):
             label = " (NUEVA)" if i == 0 else ""
             msg += str(i+1) + ". " + str(partidas[i]) + " PTS" + label + "\n\n"
     else:
         msg += "\nNo hay partidas registradas."
-    
     game.show_long_text(msg, DialogLayout.CENTER)
     menu_principal()
 
@@ -81,7 +74,9 @@ def abrir_tienda():
     protagonista.set_flag(SpriteFlag.INVISIBLE, True)
     scene.set_background_color(15)
     game.show_long_text("EL AMANECER TE DA UN RESPIRO\nORO: " + str(juego.oro), DialogLayout.BOTTOM)
-    story.show_player_choices("Curar (15g)", "Escudo (30g)", "SIGUIENTE NOCHE")
+    
+    story.show_player_choices("Curar (15g)", "Botas (20g)", "Escudo (30g)", "SIGUIENTE NOCHE")
+    
     if story.check_last_answer("SIGUIENTE NOCHE"):
         juego.ronda += 1
         iniciar_noche(juego.ronda)
@@ -89,6 +84,11 @@ def abrir_tienda():
         if juego.oro >= 15 and info.life() < 3:
             juego.oro -= 15
             info.change_life_by(1)
+        abrir_tienda()
+    elif story.check_last_answer("Botas (20g)"):
+        if juego.oro >= 20:
+            juego.oro -= 20
+            juego.velocidad = 100
         abrir_tienda()
     elif story.check_last_answer("Escudo (30g)"):
         if juego.oro >= 30:
@@ -117,16 +117,24 @@ def iniciar_noche(n: number):
 def crear_enemigo():
     if juego.juego_activo and not juego.en_tienda:
         if len(sprites.all_of_kind(SpriteKind.enemy)) < 6:
-            enemigo = sprites.create(img("""
-                . . . . 5 5 . .
-                . . . 5 f f 5 .
-                . . d d d d d d
-            """), SpriteKind.enemy)
+            enemigo = sprites.create(assets.image("""fantasma"""), SpriteKind.enemy)
             enemigo.x = 250 + randint(-60, 60)
             enemigo.y = 250 + randint(-60, 60)
             enemigo.follow(protagonista, 35 + (juego.ronda * 5))
 
 game.on_update_interval(2500, crear_enemigo)
+
+# --- ACTUALIZAR DISEÑO DE FANTASMAS (NUEVO) ---
+def actualizar_fantasmas():
+    for f in sprites.all_of_kind(SpriteKind.enemy):
+        if f.vx > 0:
+            f.set_image(assets.image("""fantasma_derecha"""))
+        elif f.vx < 0:
+            f.set_image(assets.image("""fantasma_izquierda"""))
+        else:
+            f.set_image(assets.image("""fantasma"""))
+
+game.on_update(actualizar_fantasmas)
 
 # --- COMBATE ---
 def disparar():
@@ -176,6 +184,7 @@ def daño_jugador(p, e):
         if barra_escudo.value <= 0:
             juego.tiene_escudo = False
             barra_escudo.set_flag(SpriteFlag.INVISIBLE, True)
+            protagonista.say("¡Escudo roto!", 1000)
     else: info.change_life_by(-1)
     juego.invulnerable = True
     pause(1000)

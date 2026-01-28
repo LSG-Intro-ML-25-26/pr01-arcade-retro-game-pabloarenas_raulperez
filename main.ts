@@ -1,5 +1,5 @@
 //  ==============================================================================
-//  PROYECTO: EL BOSQUE SUSURRANTE - HISTORIAL CORREGIDO (FIX LINEA 35)
+//  PROYECTO: EL BOSQUE SUSURRANTE - FANTASMAS ANIMADOS
 //  ==============================================================================
 class GameData {
     ronda: number
@@ -32,16 +32,14 @@ class GameData {
 }
 
 let juego = new GameData()
-//  --- HISTORIAL DE PARTIDAS (CORREGIDO PARA MAKECODE) ---
+//  --- HISTORIAL DE PARTIDAS ---
 function gestionar_records(puntos_finales: number) {
     let historial = settings.readNumberArray("hist_v3")
     if (!historial) {
         historial = []
     }
     
-    //  En MakeCode Arcade se usa insert_at(indice, valor)
     historial.insertAt(0, puntos_finales)
-    //  Y remove_at(indice) para mantener solo 3
     if (historial.length > 3) {
         historial.removeAt(3)
     }
@@ -98,7 +96,7 @@ function abrir_tienda() {
     scene.setBackgroundColor(15)
     game.showLongText(`EL AMANECER TE DA UN RESPIRO
 ORO: ` + ("" + juego.oro), DialogLayout.Bottom)
-    story.showPlayerChoices("Curar (15g)", "Escudo (30g)", "SIGUIENTE NOCHE")
+    story.showPlayerChoices("Curar (15g)", "Botas (20g)", "Escudo (30g)", "SIGUIENTE NOCHE")
     if (story.checkLastAnswer("SIGUIENTE NOCHE")) {
         juego.ronda += 1
         iniciar_noche(juego.ronda)
@@ -106,6 +104,13 @@ ORO: ` + ("" + juego.oro), DialogLayout.Bottom)
         if (juego.oro >= 15 && info.life() < 3) {
             juego.oro -= 15
             info.changeLifeBy(1)
+        }
+        
+        abrir_tienda()
+    } else if (story.checkLastAnswer("Botas (20g)")) {
+        if (juego.oro >= 20) {
+            juego.oro -= 20
+            juego.velocidad = 100
         }
         
         abrir_tienda()
@@ -148,11 +153,7 @@ game.onUpdateInterval(2500, function crear_enemigo() {
     let enemigo: Sprite;
     if (juego.juego_activo && !juego.en_tienda) {
         if (sprites.allOfKind(SpriteKind.Enemy).length < 6) {
-            enemigo = sprites.create(img`
-                . . . . 5 5 . .
-                . . . 5 f f 5 .
-                . . d d d d d d
-            `, SpriteKind.Enemy)
+            enemigo = sprites.create(assets.image`fantasma`, SpriteKind.Enemy)
             enemigo.x = 250 + randint(-60, 60)
             enemigo.y = 250 + randint(-60, 60)
             enemigo.follow(protagonista, 35 + juego.ronda * 5)
@@ -160,6 +161,19 @@ game.onUpdateInterval(2500, function crear_enemigo() {
         
     }
     
+})
+//  --- ACTUALIZAR DISEÑO DE FANTASMAS (NUEVO) ---
+game.onUpdate(function actualizar_fantasmas() {
+    for (let f of sprites.allOfKind(SpriteKind.Enemy)) {
+        if (f.vx > 0) {
+            f.setImage(assets.image`fantasma_derecha`)
+        } else if (f.vx < 0) {
+            f.setImage(assets.image`fantasma_izquierda`)
+        } else {
+            f.setImage(assets.image`fantasma`)
+        }
+        
+    }
 })
 //  --- COMBATE ---
 controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
@@ -224,6 +238,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function daño_jugador(p:
         if (barra_escudo.value <= 0) {
             juego.tiene_escudo = false
             barra_escudo.setFlag(SpriteFlag.Invisible, true)
+            protagonista.say("¡Escudo roto!", 1000)
         }
         
     } else {
