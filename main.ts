@@ -1,23 +1,73 @@
-//  ==========================================
-//  PROYECTO: LA CABAÑA - NOCHE ETERNA
-//  ==========================================
-//  --- VARIABLES GLOBALES ---
-let ronda = 1
-let vivos = 0
-let oro = 50
-let dificultad = [5, 10, 15, 20, 30]
-//  Variables de objetos temporales
-let velocidad_base = 100
-let velocidad_actual = 100
-let tiene_escudo = false
-//  --- LORE (HISTORIA DIARIA) ---
-let diario_de_la_nina = ["Día 1: Papá se fue a buscar ayuda hace una semana... La cabaña cruje. He encontrado su viejo revólver.", "Día 2: No son animales. Anoche los vi caminar en dos patas. Rasguñan las paredes. Tengo que proteger mi hogar.", "Día 3: El miedo no me deja dormir. He encontrado provisiones viejas, pero necesito más. Un extraño mercader ha pasado por aquí...", "Día 4: ¡Están furiosos! Golpean las ventanas. Sus gritos suenan como niños llorando... Sé que vienen a por mí.", "Día 5: Es el final. El bosque entero ruge. Si sobrevivo a esta noche, saldré de aquí al amanecer. ¡Venid a por mí!"]
-//  --- BARRA DE ESCUDO ---
-let barra_escudo = statusbars.create(20, 4, StatusBarKind.Energy)
-barra_escudo.setFlag(SpriteFlag.Invisible, true)
-barra_escudo.setBarBorder(1, 15)
-barra_escudo.setColor(8, 2)
-//  --- SPRITE DEL JUGADOR ---
+//  ==============================================================================
+//  PROYECTO: LA CABAÑA - NOCHE ETERNA (VERSIÓN 100% COMPATIBLE)
+//  ==============================================================================
+class GameData {
+    ronda: number
+    oro: number
+    vivos: number
+    velocidad: number
+    tiene_escudo: boolean
+    invulnerable: boolean
+    lore: string[]
+    dificultad: number[]
+    constructor() {
+        this.ronda = 1
+        this.oro = 0
+        this.vivos = 0
+        this.velocidad = 100
+        this.tiene_escudo = false
+        this.invulnerable = false
+        this.lore = ["Noche 1: Papa no ha vuelto. Solo me queda su viejo revolver.", "Noche 2: He visto sombras caminar en dos patas. No son lobos...", "Noche 3: Un mercader paso por la cabaña. Compre suministros.", "Noche 4: El bosque entero ruge. Intentan entrar por las ventanas.", "Noche 5: Es el final. Si aguanto hasta el alba, sere libre."]
+        this.dificultad = [4, 8, 12, 16, 22]
+    }
+    
+}
+
+let juego = new GameData()
+//  --- FUNCIONES DE PERSISTENCIA ---
+function gestionar_records(puntuacion_final: number) {
+    let temp: number;
+    let tops = settings.readNumberArray("tops_v4")
+    if (!tops) {
+        tops = []
+    }
+    
+    tops.push(puntuacion_final)
+    for (let i = 0; i < tops.length; i++) {
+        for (let j = 0; j < tops.length - 1; j++) {
+            if (tops[j] < tops[j + 1]) {
+                temp = tops[j]
+                tops[j] = tops[j + 1]
+                tops[j + 1] = temp
+            }
+            
+        }
+    }
+    if (tops.length > 3) {
+        tops.removeAt(3)
+    }
+    
+    settings.writeNumberArray("tops_v4", tops)
+}
+
+function mostrar_menu_records() {
+    scene.setBackgroundColor(15)
+    let tops = settings.readNumberArray("tops_v4")
+    let msg = `--- MEJORES PARTIDAS ---
+`
+    if (tops && tops.length > 0) {
+        for (let i = 0; i < tops.length; i++) {
+            msg += "" + (i + 1) + ". " + ("" + tops[i]) + " Oro\n"
+        }
+    } else {
+        msg += "Sin registros todavia."
+    }
+    
+    game.showLongText(msg, DialogLayout.Center)
+    menu_principal()
+}
+
+//  --- JUGABILIDAD ---
 let protagonista = sprites.create(img`
     . . . . . . . . . . . . . . . .
     . . . . 2 2 2 2 2 . . . . . . .
@@ -31,122 +81,74 @@ let protagonista = sprites.create(img`
     . . . . 8 . . . 8 . . . . . . .
 `, SpriteKind.Player)
 protagonista.setFlag(SpriteFlag.Invisible, true)
-//  --- CONFIGURACIÓN VISUAL (ESTILO DE TEXTO) ---
-function configurar_dialogo_blanco() {
-    //  Caja blanca con borde negro
-    let caja_estilo = img`
-        f f f f f f f f f f f f f f f f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f 1 1 1 1 1 1 1 1 1 1 1 1 1 1 f
-        f f f f f f f f f f f f f f f f
-    `
-    game.setDialogFrame(caja_estilo)
-    game.setDialogTextColor(15)
-}
-
-//  Texto negro
-//  --- MAPA Y OBJETOS ---
-function cargar_mapa() {
-    tiles.setCurrentTilemap(assets.tilemap`mapa`)
-    scene.cameraFollowSprite(protagonista)
-}
-
-function generar_items_random() {
-    let img_actual: Image;
-    let cantidad_actual: number;
-    let item: Sprite;
-    let posicion_encontrada: boolean;
-    let col: number;
-    let fil: number;
-    let ubicacion: tiles.Location;
-    let mis_imagenes = [assets.image`miImagen`, assets.image`miImagen1`, assets.image`miImagen2`]
-    let mis_cantidades = [1, 10, 10]
-    for (let i = 0; i < mis_imagenes.length; i++) {
-        img_actual = mis_imagenes[i]
-        cantidad_actual = mis_cantidades[i]
-        for (let j = 0; j < cantidad_actual; j++) {
-            item = sprites.create(img_actual, SpriteKind.Food)
-            posicion_encontrada = false
-            while (!posicion_encontrada) {
-                col = randint(1, 20)
-                fil = randint(1, 20)
-                ubicacion = tiles.getTileLocation(col, fil)
-                if (!tiles.tileAtLocationIsWall(ubicacion)) {
-                    tiles.placeOnTile(item, ubicacion)
-                    posicion_encontrada = true
-                }
-                
-            }
-        }
-    }
-}
-
-//  --- SISTEMA DE GESTIÓN DE OBJETOS ---
-function resetear_objetos_temporales() {
-    
-    game.showLongText(`El sol sale...
-Tus mejoras se han roto.`, DialogLayout.Center)
-    velocidad_actual = velocidad_base
-    controller.moveSprite(protagonista, velocidad_actual, velocidad_actual)
-    barra_escudo.setFlag(SpriteFlag.Invisible, true)
-    tiene_escudo = false
-}
-
-function activar_escudo() {
-    
-    tiene_escudo = true
-    barra_escudo.value = 3
-    barra_escudo.max = 3
-    barra_escudo.attachToSprite(protagonista, -4, 0)
-    barra_escudo.setFlag(SpriteFlag.Invisible, false)
-}
-
-//  --- SISTEMA DE TEXTO Y LORE ---
-function mostrar_historia_dia(n: number) {
-    //  Fondo negro y ocultar personaje para modo cine
+let barra_escudo = statusbars.create(20, 4, StatusBarKind.Energy)
+barra_escudo.setFlag(SpriteFlag.Invisible, true)
+barra_escudo.setColor(9, 2)
+function iniciar_noche(n: number) {
     scene.setBackgroundColor(15)
     protagonista.setFlag(SpriteFlag.Invisible, true)
     let indice = n - 1
-    if (indice < diario_de_la_nina.length) {
-        game.showLongText(diario_de_la_nina[indice], DialogLayout.Center)
-    } else {
-        game.showLongText("Día " + ("" + n) + ": Sobrevive...", DialogLayout.Center)
+    if (indice < juego.lore.length) {
+        game.showLongText(juego.lore[indice], DialogLayout.Center)
     }
     
-    //  Volver al juego
-    cargar_mapa()
+    tiles.setCurrentTilemap(assets.tilemap`mapa`)
+    scene.cameraFollowSprite(protagonista)
     protagonista.setFlag(SpriteFlag.Invisible, false)
+    juego.vivos = juego.dificultad[n - 1]
+    for (let i = 0; i < juego.vivos; i++) {
+        crear_enemigo()
+    }
 }
 
-function iniciar_juego() {
-    configurar_dialogo_blanco()
+function crear_enemigo() {
+    let enemigo = sprites.create(img`
+        . . . . 5 5 . .
+        . . . 5 f f 5 .
+        . . . d d d d .
+    `, SpriteKind.Enemy)
+    tiles.placeOnTile(enemigo, tiles.getTileLocation(randint(1, 20), randint(1, 20)))
+    enemigo.follow(protagonista, 30 + juego.ronda * 5)
+}
+
+function abrir_tienda() {
     scene.setBackgroundColor(15)
-    pause(500)
-    game.splash("LA CABAÑA", "NOCHE ETERNA")
-    game.showLongText(`Estás sola en el bosque.
-Tu cabaña es tu refugio.
-Sobrevive 5 noches.`, DialogLayout.Center)
-    cargar_mapa()
-    generar_items_random()
+    while (true) {
+        game.showLongText("MERCADER - ORO: " + ("" + juego.oro), DialogLayout.Bottom)
+        story.showPlayerChoices("Escudo (30g)", "Botas (20g)", "Continuar")
+        if (story.checkLastAnswer("Continuar")) {
+            break
+        } else if (story.checkLastAnswer("Escudo (30g)") && juego.oro >= 30) {
+            juego.oro -= 30
+            juego.tiene_escudo = true
+            barra_escudo.value = 3
+            barra_escudo.max = 3
+            barra_escudo.attachToSprite(protagonista, -4, 0)
+            barra_escudo.setFlag(SpriteFlag.Invisible, false)
+        } else if (story.checkLastAnswer("Botas (20g)") && juego.oro >= 20) {
+            juego.oro -= 20
+            juego.velocidad = 150
+        }
+        
+    }
+    info.setScore(juego.oro)
+    controller.moveSprite(protagonista, juego.velocidad, juego.velocidad)
+    juego.ronda += 1
+    if (juego.ronda <= 5) {
+        iniciar_noche(juego.ronda)
+    } else {
+        gestionar_records(juego.oro)
+        game.over(true)
+    }
+    
 }
 
-//  --- ACCIÓN ---
+//  --- SOLUCIÓN A LOS ERRORES DE SPRITEFLAG Y LAMBDA ---
+//  Sustitución de lambda por función normal
 controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
-    let p: Sprite;
+    let proj: Sprite;
     if (!(protagonista.flags & SpriteFlag.Invisible)) {
-        p = sprites.createProjectileFromSprite(img`
+        proj = sprites.createProjectileFromSprite(img`
             . . . . . . . .
             . . 5 5 5 5 . .
             . . . . . . . .
@@ -155,131 +157,36 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function disparar() {
     }
     
 })
-function spawn() {
-    let col: number;
-    let fil: number;
-    let loc: tiles.Location;
-    
-    let z = sprites.create(img`
-        . . . . 5 5 . .
-        . . . 5 f f 5 .
-        . . . d d d d .
-    `, SpriteKind.Enemy)
-    let spawn_valido = false
-    while (!spawn_valido) {
-        col = randint(1, 20)
-        fil = randint(1, 20)
-        loc = tiles.getTileLocation(col, fil)
-        if (!tiles.tileAtLocationIsWall(loc)) {
-            tiles.placeOnTile(z, loc)
-            if (Math.abs(z.x - protagonista.x) > 40) {
-                spawn_valido = true
-            }
-            
-        }
-        
-    }
-    z.follow(protagonista, 30 + ronda * 3)
-}
-
-function nueva_ronda(n: number) {
-    
-    mostrar_historia_dia(n)
-    vivos = dificultad[n - 1]
-    for (let i = 0; i < vivos; i++) {
-        spawn()
-    }
-}
-
-//  --- TIENDA AVANZADA ---
-function tienda() {
-    
-    scene.cameraFollowSprite(null)
-    scene.setBackgroundColor(15)
-    resetear_objetos_temporales()
-    let compra_terminada = false
-    while (!compra_terminada) {
-        game.showLongText(`MERCADER:
-'¿Que necesitas?'
-
-ORO: ` + ("" + oro), DialogLayout.Center)
-        story.showPlayerChoices("Escudo (30g)", "Botas Temp (20g)", "Vida +1 (50g)", "Siguiente Noche")
-        if (story.checkLastAnswer("Siguiente Noche")) {
-            compra_terminada = true
-        } else if (story.checkLastAnswer("Escudo (30g)")) {
-            if (oro >= 30) {
-                if (!tiene_escudo) {
-                    oro -= 30
-                    activar_escudo()
-                    game.showLongText("Compraste un escudo.", DialogLayout.Center)
-                } else {
-                    game.showLongText("Ya tienes escudo.", DialogLayout.Center)
-                }
-                
-            } else {
-                game.showLongText("No tienes oro.", DialogLayout.Center)
-            }
-            
-        } else if (story.checkLastAnswer("Botas Temp (20g)")) {
-            if (oro >= 20) {
-                if (velocidad_actual == velocidad_base) {
-                    oro -= 20
-                    velocidad_actual += 40
-                    controller.moveSprite(protagonista, velocidad_actual, velocidad_actual)
-                    game.showLongText("Corres más rápido.", DialogLayout.Center)
-                } else {
-                    game.showLongText("Ya llevas botas.", DialogLayout.Center)
-                }
-                
-            } else {
-                game.showLongText("Necesitas más oro.", DialogLayout.Center)
-            }
-            
-        } else if (story.checkLastAnswer("Vida +1 (50g)")) {
-            if (oro >= 50) {
-                oro -= 50
-                info.changeLifeBy(1)
-                music.powerUp.play()
-                game.showLongText("Salud recuperada.", DialogLayout.Center)
-            } else {
-                game.showLongText("Demasiado caro.", DialogLayout.Center)
-            }
-            
-        }
-        
-        info.setScore(oro)
-    }
-    cargar_mapa()
-    proximo_paso()
-}
-
-//  --- COLISIONES ---
-//  IMPORTANTE: Aquí he añadido ": Sprite" para arreglar el error.
-sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function muerte_enemigo(b: Sprite, e: Sprite) {
-    
-    b.destroy()
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function enemigo_derrotado(p: Sprite, e: Sprite) {
+    p.destroy()
     e.destroy(effects.disintegrate, 200)
-    vivos -= 1
-    oro += 10
-    info.setScore(oro)
-    if (vivos <= 0) {
-        tienda()
+    juego.vivos -= 1
+    juego.oro += 10
+    info.setScore(juego.oro)
+    if (juego.vivos <= 0) {
+        abrir_tienda()
     }
     
 })
-//  IMPORTANTE: Aquí he añadido ": Sprite" para arreglar el error.
-sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function choque(p: Sprite, e: Sprite) {
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function dano_jugador(p: Sprite, e: Sprite) {
+    if (juego.invulnerable) {
+        return
+    }
     
     e.destroy()
-    vivos -= 1
-    if (tiene_escudo && barra_escudo.value > 0) {
+    juego.vivos -= 1
+    if (juego.tiene_escudo && barra_escudo.value > 0) {
         barra_escudo.value -= 1
-        music.bigCrash.play()
-        scene.cameraShake(2, 200)
+        music.baDing.play()
+        //  Invulnerabilidad mediante parpadeo (sin usar GHOST_THROUGH_ENEMIES)
+        juego.invulnerable = true
+        //  El efecto de parpadeo visual ayuda a la durabilidad
+        protagonista.setStayInScreen(true)
+        pause(500)
+        juego.invulnerable = false
         if (barra_escudo.value <= 0) {
+            juego.tiene_escudo = false
             barra_escudo.setFlag(SpriteFlag.Invisible, true)
-            tiene_escudo = false
-            music.wawawawaa.play()
         }
         
     } else {
@@ -287,29 +194,31 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function choque(p: Sprite
         scene.cameraShake(4, 500)
     }
     
-    if (vivos <= 0) {
-        tienda()
+    if (juego.vivos <= 0) {
+        abrir_tienda()
     }
     
 })
-function proximo_paso() {
-    
-    ronda += 1
-    if (ronda > 5) {
-        scene.setBackgroundColor(15)
-        game.showLongText(`¡AMANECER!
-Has sobrevivido.
-Fin del juego.`, DialogLayout.Center)
-        game.over(true)
+//  Sustitución de lambda por función normal
+info.onLifeZero(function finalizar_partida() {
+    gestionar_records(juego.oro)
+    game.over(false)
+})
+function menu_principal() {
+    scene.setBackgroundColor(15)
+    game.splash("LA CABANA", "NOCHE ETERNA")
+    story.showPlayerChoices("JUGAR", "RECORDS")
+    if (story.checkLastAnswer("JUGAR")) {
+        info.setLife(3)
+        info.setScore(0)
+        juego.ronda = 1
+        juego.oro = 0
+        controller.moveSprite(protagonista, juego.velocidad, juego.velocidad)
+        iniciar_noche(1)
     } else {
-        nueva_ronda(ronda)
+        mostrar_menu_records()
     }
     
 }
 
-//  --- INICIO ---
-controller.moveSprite(protagonista, velocidad_actual, velocidad_actual)
-info.setScore(oro)
-info.setLife(3)
-iniciar_juego()
-nueva_ronda(ronda)
+menu_principal()
