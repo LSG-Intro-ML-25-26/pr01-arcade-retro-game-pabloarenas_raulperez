@@ -39,7 +39,7 @@ Es el personaje controlado por el jugador. Cuenta con un sistema de **animacione
 * **Asset principal:** `player-standing.png`
 * **Habilidades:** Disparo, movimiento veloz y uso de escudos.
 
-<<img width="306" height="206" alt="image" src="https://github.com/user-attachments/assets/8bb79a51-f0cd-4618-a6fa-279ef404bf9c" />
+<img width="306" height="206" alt="image" src="https://github.com/user-attachments/assets/8bb79a51-f0cd-4618-a6fa-279ef404bf9c" />
  
 
 
