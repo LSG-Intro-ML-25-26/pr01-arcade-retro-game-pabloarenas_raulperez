@@ -39,7 +39,8 @@ Es el personaje controlado por el jugador. Cuenta con un sistema de **animacione
 * **Asset principal:** `player-standing.png`
 * **Habilidades:** Disparo, movimiento veloz y uso de escudos.
 
-![Imagen del Piloto]<img width="751" height="751" alt="image" src="https://github.com/user-attachments/assets/05e0f5dd-3320-45dc-a66f-e6ada13bcb67" />
+<<img width="306" height="206" alt="image" src="https://github.com/user-attachments/assets/8bb79a51-f0cd-4618-a6fa-279ef404bf9c" />
+ 
 
 
 ### 👻 Los Espectros (Enemigos)
@@ -47,14 +48,16 @@ Son las almas en pena que habitan el bosque. Tienen la capacidad de **atravesar 
 * **Asset:** `fantasma.png`
 * **Comportamiento:** IA de persecución directa (`follow`).
 
-![Imagen del Enemigo](./assets/fantasma.png)
+<img width="302" height="172" alt="image" src="https://github.com/user-attachments/assets/d62792ff-1e6f-4ff6-bd65-92370904496b" />
+
 
 ### 👹 El Espíritu (Jefe Final)
 Una manifestación gigante del bosque que aparece en la **Noche 3**.
 * **Asset:** `fantasma.png` (Escalado x3)
 * **Mecánica:** Posee una barra de vida propia (20 HP) y es necesario derrotarlo para ver el final del juego y escapar.
 
-![Imagen del Boss](./assets/boss_fantasma.png)
+<img width="302" height="172" alt="image" src="https://github.com/user-attachments/assets/084087cd-33b0-46c2-8702-92fdf37115e0" />
+
 
 ---
 
@@ -62,7 +65,7 @@ Una manifestación gigante del bosque que aparece en la **Noche 3**.
 
 Aquí puedes ver una demostración de una partida completa (Speed-run) donde se muestra la supervivencia a las 3 noches y la derrota del jefe final:
 
-[🎬 **Ver Vídeo Demo del Gameplay**](AQUI_TU_ENLACE_AL_VIDEO)
+[🎬 **Ver Vídeo Demo del Gameplay**](https://drive.google.com/file/d/14I2n9oFgeu2t0xD9E5CGmGhS0SkWfENj/view?usp=sharing)
 
 ---
 
