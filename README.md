@@ -48,7 +48,8 @@ Son las almas en pena que habitan el bosque. Tienen la capacidad de **atravesar 
 * **Asset:** `fantasma.png`
 * **Comportamiento:** IA de persecución directa (`follow`).
 
-<img width="302" height="172" alt="image" src="https://github.com/user-attachments/assets/d62792ff-1e6f-4ff6-bd65-92370904496b" />
+<img width="169" height="174" alt="Captura de pantalla 2026-01-28 225202" src="https://github.com/user-attachments/assets/a26f6855-ca1c-4966-9e17-5cca2ba2ad7c" />
+
 
 
 ### 👹 El Espíritu (Jefe Final)
@@ -56,7 +57,8 @@ Una manifestación gigante del bosque que aparece en la **Noche 3**.
 * **Asset:** `fantasma.png` (Escalado x3)
 * **Mecánica:** Posee una barra de vida propia (20 HP) y es necesario derrotarlo para ver el final del juego y escapar.
 
-<img width="302" height="172" alt="image" src="https://github.com/user-attachments/assets/084087cd-33b0-46c2-8702-92fdf37115e0" />
+<img width="169" height="174" alt="Captura de pantalla 2026-01-28 225202" src="https://github.com/user-attachments/assets/2d648cda-071e-4417-a6af-cf095dafc5b6" />
+
 
 
 ---
