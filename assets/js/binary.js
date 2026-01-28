@@ -1,4 +1,4 @@
-// meta={"simUrl":"https://trg-arcade.userpxt.io/v2.0.63/---simulator","cdnUrl":"https://cdn.makecode.com","version":"1.0.0","target":"arcade","targetVersion":"2.0.63","repo":"lsg-intro-ml-25-26/pr01-arcade-retro-game-pabloarenas_raulperez"}
+// meta={"simUrl":"https://trg-arcade.userpxt.io/v2.0.63/---simulator","cdnUrl":"https://cdn.makecode.com","version":"0.1.0","target":"arcade","targetVersion":"2.0.63","repo":"lsg-intro-ml-25-26/pr01-arcade-retro-game-pabloarenas_raulperez"}
 // total=2931999 new=20.03% cached=75.53% other=4.44%
 (function (ectx) {
 'use strict';
@@ -708,7 +708,7 @@ const pxsim_pxtrt = pxsim.pxtrt;
 const pxsim_numops = pxsim.numops;
 
 
-function _main___P32159(s) {
+function _main___P31748(s) {
 let r0 = s.r0, step = s.pc;
 s.pc = -1;
 
@@ -1414,13 +1414,13 @@ switch (step) {
     return leave(s, r0)
   default: oops()
 } } }
-_main___P32159.info = {"start":0,"length":0,"line":0,"column":0,"endLine":0,"endColumn":0,"fileName":"pxt_modules/arcade-story/main.ts","functionName":"<main>","argumentNames":[]}
-_main___P32159.continuations = [ 48,49,50,51 ]
+_main___P31748.info = {"start":0,"length":0,"line":0,"column":0,"endLine":0,"endColumn":0,"fileName":"pxt_modules/arcade-story/main.ts","functionName":"<main>","argumentNames":[]}
+_main___P31748.continuations = [ 48,49,50,51 ]
 
-function _main___P32159_mk(s) {
+function _main___P31748_mk(s) {
     checkStack(s.depth);
     return {
-        parent: s, fn: _main___P32159, depth: s.depth + 1,
+        parent: s, fn: _main___P31748, depth: s.depth + 1,
         pc: 0, retval: undefined, r0: undefined, overwrittenPC: false, lambdaArgs: null,
   tmp_0: undefined,
   tmp_1: undefined,
@@ -18067,8 +18067,8 @@ switch (step) {
   case 0:
 
     s.d___7959 = undefined;
-    s.unnamed226___U1 = undefined;
-    s.unnamed227___U2 = undefined;
+    s.unnamed178___U1 = undefined;
+    s.unnamed179___U2 = undefined;
     if (s.lambdaArgs) {
       s.arg0 = (s.lambdaArgs[0]);
       s.lambdaArgs = null;
@@ -18081,15 +18081,15 @@ switch (step) {
     s.callLocIdx = 194; s.pc = 3; return s.tmp_0;
   case 3:
     r0 = s.retval;
-    s.unnamed226___U1 = (r0);
-    s.unnamed227___U2 = (0);
+    s.unnamed178___U1 = (r0);
+    s.unnamed179___U2 = (0);
   case 1:
-    s.tmp_0 = r0 = s.unnamed227___U2;
-    r0 = pxsim_Array__length(s.unnamed226___U1);
+    s.tmp_0 = r0 = s.unnamed179___U2;
+    r0 = pxsim_Array__length(s.unnamed178___U1);
     s.tmp_1 = r0;
     r0 = (s.tmp_0 < s.tmp_1);
     if (!r0) { step = 2; continue; }
-    r0 = pxsim_Array__getAt(s.unnamed226___U1, s.unnamed227___U2);
+    r0 = pxsim_Array__getAt(s.unnamed178___U1, s.unnamed179___U2);
     s.d___7959 = (r0);
     s.tmp_2 = Sprite_destroy__P2443_mk(s);
     s.tmp_2.arg0 = s.d___7959;
@@ -18098,11 +18098,11 @@ switch (step) {
     s.callLocIdx = 195; s.pc = 4; return s.tmp_2;
   case 4:
     r0 = s.retval;
-    r0 = (s.unnamed227___U2 + 1);
-    s.unnamed227___U2 = (r0);
+    r0 = (s.unnamed179___U2 + 1);
+    s.unnamed179___U2 = (r0);
     { step = 1; continue; }
   case 2:
-    s.unnamed226___U1 = (undefined);
+    s.unnamed178___U1 = (undefined);
     s.tmp_0 = game_showLongText__P2977_mk(s);
     r0 = globals.juego___4734.fields["lore"];
     s.tmp_1 = r0;
@@ -18181,8 +18181,8 @@ function iniciar_noche__P4743_mk(s) {
   tmp_2: undefined,
   tmp_3: undefined,
   d___7959: undefined,
-  unnamed226___U1: undefined,
-  unnamed227___U2: undefined,
+  unnamed178___U1: undefined,
+  unnamed179___U2: undefined,
   arg0: undefined,
 } }
 
@@ -18880,8 +18880,8 @@ switch (step) {
     s.arbol___7903 = undefined;
     s.tipos_arboles___7904 = undefined;
     s.dibujo___7911 = undefined;
-    s.unnamed224___U3 = undefined;
-    s.unnamed225___U4 = undefined;
+    s.unnamed176___U3 = undefined;
+    s.unnamed177___U4 = undefined;
     s.i___7913 = undefined;
     r0 = pxsim_Array__mk();
     s.tmp_0 = r0;
@@ -18901,15 +18901,15 @@ switch (step) {
     r0 = pxsim_Array__push(s.tmp_0, s.tmp_3);
     s.tipos_arboles___7904 = (s.tmp_0);
     s.dibujo___7911 = (undefined);
-    s.unnamed224___U3 = (s.tipos_arboles___7904);
-    s.unnamed225___U4 = (0);
+    s.unnamed176___U3 = (s.tipos_arboles___7904);
+    s.unnamed177___U4 = (0);
   case 1:
-    s.tmp_0 = r0 = s.unnamed225___U4;
-    r0 = pxsim_Array__length(s.unnamed224___U3);
+    s.tmp_0 = r0 = s.unnamed177___U4;
+    r0 = pxsim_Array__length(s.unnamed176___U3);
     s.tmp_1 = r0;
     r0 = (s.tmp_0 < s.tmp_1);
     if (!r0) { step = 8; continue; }
-    r0 = pxsim_Array__getAt(s.unnamed224___U3, s.unnamed225___U4);
+    r0 = pxsim_Array__getAt(s.unnamed176___U3, s.unnamed177___U4);
     s.dibujo___7911 = (r0);
     s.i___7913 = (0);
   case 2:
@@ -19010,11 +19010,11 @@ switch (step) {
     s.i___7913 = (r0);
     { step = 2; continue; }
   case 7:
-    r0 = (s.unnamed225___U4 + 1);
-    s.unnamed225___U4 = (r0);
+    r0 = (s.unnamed177___U4 + 1);
+    s.unnamed177___U4 = (r0);
     { step = 1; continue; }
   case 8:
-    s.unnamed224___U3 = (undefined);
+    s.unnamed176___U3 = (undefined);
     r0 = undefined;
     return leave(s, r0)
   default: oops()
@@ -19043,8 +19043,8 @@ function colocar_arboles_aleatorios__P4742_mk(s) {
   arbol___7903: undefined,
   tipos_arboles___7904: undefined,
   dibujo___7911: undefined,
-  unnamed224___U3: undefined,
-  unnamed225___U4: undefined,
+  unnamed176___U3: undefined,
+  unnamed177___U4: undefined,
   i___7913: undefined,
 } }
 
@@ -42439,11 +42439,11 @@ switch (step) {
   case 0:
 
     s.e___7666 = undefined;
-    s.unnamed220___U1 = undefined;
-    s.unnamed221___U2 = undefined;
+    s.unnamed172___U1 = undefined;
+    s.unnamed173___U2 = undefined;
     s.b___7675 = undefined;
-    s.unnamed222___U4 = undefined;
-    s.unnamed223___U5 = undefined;
+    s.unnamed174___U4 = undefined;
+    s.unnamed175___U5 = undefined;
     r0 = (globals.juego___4734).fields["juego_activo"] = (false);
     r0 = (globals.juego___4734).fields["en_tienda"] = (true);
     s.e___7666 = (undefined);
@@ -42452,15 +42452,15 @@ switch (step) {
     s.callLocIdx = 123; s.pc = 19; return s.tmp_0;
   case 19:
     r0 = s.retval;
-    s.unnamed220___U1 = (r0);
-    s.unnamed221___U2 = (0);
+    s.unnamed172___U1 = (r0);
+    s.unnamed173___U2 = (0);
   case 1:
-    s.tmp_0 = r0 = s.unnamed221___U2;
-    r0 = pxsim_Array__length(s.unnamed220___U1);
+    s.tmp_0 = r0 = s.unnamed173___U2;
+    r0 = pxsim_Array__length(s.unnamed172___U1);
     s.tmp_1 = r0;
     r0 = (s.tmp_0 < s.tmp_1);
     if (!r0) { step = 2; continue; }
-    r0 = pxsim_Array__getAt(s.unnamed220___U1, s.unnamed221___U2);
+    r0 = pxsim_Array__getAt(s.unnamed172___U1, s.unnamed173___U2);
     s.e___7666 = (r0);
     s.tmp_2 = Sprite_destroy__P2443_mk(s);
     s.tmp_2.arg0 = s.e___7666;
@@ -42469,26 +42469,26 @@ switch (step) {
     s.callLocIdx = 124; s.pc = 20; return s.tmp_2;
   case 20:
     r0 = s.retval;
-    r0 = (s.unnamed221___U2 + 1);
-    s.unnamed221___U2 = (r0);
+    r0 = (s.unnamed173___U2 + 1);
+    s.unnamed173___U2 = (r0);
     { step = 1; continue; }
   case 2:
-    s.unnamed220___U1 = (undefined);
+    s.unnamed172___U1 = (undefined);
     s.b___7675 = (undefined);
     s.tmp_0 = sprites_allOfKind__P2292_mk(s);
     s.tmp_0.arg0 = globals.KIND_BOSS___4716;
     s.callLocIdx = 125; s.pc = 21; return s.tmp_0;
   case 21:
     r0 = s.retval;
-    s.unnamed222___U4 = (r0);
-    s.unnamed223___U5 = (0);
+    s.unnamed174___U4 = (r0);
+    s.unnamed175___U5 = (0);
   case 3:
-    s.tmp_0 = r0 = s.unnamed223___U5;
-    r0 = pxsim_Array__length(s.unnamed222___U4);
+    s.tmp_0 = r0 = s.unnamed175___U5;
+    r0 = pxsim_Array__length(s.unnamed174___U4);
     s.tmp_1 = r0;
     r0 = (s.tmp_0 < s.tmp_1);
     if (!r0) { step = 4; continue; }
-    r0 = pxsim_Array__getAt(s.unnamed222___U4, s.unnamed223___U5);
+    r0 = pxsim_Array__getAt(s.unnamed174___U4, s.unnamed175___U5);
     s.b___7675 = (r0);
     s.tmp_2 = Sprite_destroy__P2443_mk(s);
     s.tmp_2.arg0 = s.b___7675;
@@ -42497,11 +42497,11 @@ switch (step) {
     s.callLocIdx = 126; s.pc = 22; return s.tmp_2;
   case 22:
     r0 = s.retval;
-    r0 = (s.unnamed223___U5 + 1);
-    s.unnamed223___U5 = (r0);
+    r0 = (s.unnamed175___U5 + 1);
+    s.unnamed175___U5 = (r0);
     { step = 3; continue; }
   case 4:
-    s.unnamed222___U4 = (undefined);
+    s.unnamed174___U4 = (undefined);
     s.tmp_0 = Sprite_setFlag__P2434_mk(s);
     s.tmp_0.arg0 = globals.protagonista___4735;
     s.tmp_0.arg1 = 128;
@@ -42703,11 +42703,11 @@ function abrir_tienda__P4739_mk(s) {
   tmp_5: undefined,
   tmp_6: undefined,
   e___7666: undefined,
-  unnamed220___U1: undefined,
-  unnamed221___U2: undefined,
+  unnamed172___U1: undefined,
+  unnamed173___U2: undefined,
   b___7675: undefined,
-  unnamed222___U4: undefined,
-  unnamed223___U5: undefined,
+  unnamed174___U4: undefined,
+  unnamed175___U5: undefined,
 } }
 
 
@@ -85809,5 +85809,5 @@ const sprites_StaticObstacle__C2514_VT = mkVTable({
 
 const breakpoints = setupDebugger(1, ["transparency16___4749","KIND_BOSS___4716","KIND_DECO___4717","juego___4734","protagonista___4735","barra_escudo___4736"])
 
-return _main___P32159
+return _main___P31748
 })
